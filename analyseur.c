@@ -5,15 +5,34 @@
 #include <unistd.h>
 
 void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag, char * fFlag);
-
+void checkIfSudo();
 int main(int argc, char ** argv)
 {
+  checkIfSudo();
   int vFlag = 0;
   char *iFlag = NULL;
   char *oFlag = NULL;
   char *fFlag = NULL;
 
   getOptions(argc, argv, &vFlag, iFlag, oFlag, fFlag);
+  printf("After options\n");
+
+  pcap_t *handle;
+  char errbuf[PCAP_ERRBUF_SIZE];
+  printf("Before open live\n");
+
+	handle = pcap_open_live(iFlag, BUFSIZ, 1, 1000, errbuf);
+  printf("After open live\n");
+	if (handle == NULL)
+  {
+	  fprintf(stderr, "Couldn't open device %s: %s\n", iFlag, errbuf);
+	  return(2);
+	}
+  if (pcap_datalink(handle) != DLT_EN10MB) {
+		fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", iFlag);
+		return(2);
+	}
+
   return 0;
 }
 
@@ -37,7 +56,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag,
         if( *vFlag < 1 || *vFlag > 3)
         {
           fprintf(stderr, "Option -v requires a value in [1,3]\n");
-          exit(EXIT_SUCCESS);
+          exit(EXIT_FAILURE);
         }
         optionsPresent[1] = 1;
         break;
@@ -59,7 +78,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag,
           fprintf (stderr, "Unknown option `-%c'.\n", optopt);
         else
           fprintf (stderr,"Unknown option character `\\x%x'.\n",optopt);
-          exit(EXIT_SUCCESS);
+          exit(EXIT_FAILURE);
       default:
         abort ();
     }
@@ -87,7 +106,16 @@ void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag,
     }
     if(missingOptions)
     {
-      exit(EXIT_SUCCESS);
+      exit(EXIT_FAILURE);
     }
 
+}
+
+void checkIfSudo()
+{
+  if(getuid() != 0)
+  {
+    printf("Please run as root.\n");
+    exit(EXIT_FAILURE);
+  }
 }
