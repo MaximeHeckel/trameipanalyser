@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag, char * fFlag);
+void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
 void checkIfSudo();
+void openDevice(char * device,pcap_t * handle, char * errbuf);
 int main(int argc, char ** argv)
 {
   checkIfSudo();
@@ -14,29 +15,18 @@ int main(int argc, char ** argv)
   char *oFlag = NULL;
   char *fFlag = NULL;
 
-  getOptions(argc, argv, &vFlag, iFlag, oFlag, fFlag);
-  printf("After options\n");
+  getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
 
-  pcap_t *handle;
+  printf ("vFlag = %d, iFlag = %s, fFlag = %s, oFlag = %s\n",vFlag, iFlag, fFlag, oFlag);
+  
   char errbuf[PCAP_ERRBUF_SIZE];
-  printf("Before open live\n");
-
-	handle = pcap_open_live(iFlag, BUFSIZ, 1, 1000, errbuf);
-  printf("After open live\n");
-	if (handle == NULL)
-  {
-	  fprintf(stderr, "Couldn't open device %s: %s\n", iFlag, errbuf);
-	  return(2);
-	}
-  if (pcap_datalink(handle) != DLT_EN10MB) {
-		fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", iFlag);
-		return(2);
-	}
+  pcap_t *handle = NULL;
+  openDevice(iFlag, handle, errbuf);
 
   return 0;
 }
 
-void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag, char * fFlag)
+void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag)
 {
   int index;
   int c;
@@ -48,7 +38,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag,
     switch (c)
     {
       case 'o':
-        oFlag = optarg;
+        *oFlag = optarg;
         optionsPresent[0] = 1;
         break;
       case 'v':
@@ -61,11 +51,11 @@ void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag,
         optionsPresent[1] = 1;
         break;
       case 'f':
-        fFlag = optarg;
+        *fFlag = optarg;
         optionsPresent[2] = 1;
         break;
       case 'i':
-        iFlag = optarg;
+        *iFlag = optarg;
         optionsPresent[3] = 1;
         break;
       case '?':
@@ -83,7 +73,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char * iFlag, char * oFlag,
         abort ();
     }
      
-    printf ("vFlag = %d, iFlag = %s, fFlag = %s, oFlag = %s\n",*vFlag, iFlag, fFlag, oFlag);
+    printf ("vFlag = %d, iFlag = %s, fFlag = %s, oFlag = %s\n",*vFlag, *iFlag, *fFlag, *oFlag);
      
     for (index = optind; index < argc; index++)
       printf ("Non-option argument %s\n", argv[index]);
@@ -118,4 +108,21 @@ void checkIfSudo()
     printf("Please run as root.\n");
     exit(EXIT_FAILURE);
   }
+}
+
+void openDevice(char * device, pcap_t * handle, char * errbuf)
+{
+  printf("Opening device %s...\n", device);
+
+	handle = pcap_open_live(device, BUFSIZ, 1, 1000, errbuf);
+	if (handle == NULL)
+  {
+	  fprintf(stderr, "Couldn't open device %s: %s\n", device, errbuf);
+	  exit(EXIT_FAILURE);
+	}
+  if (pcap_datalink(handle) != DLT_EN10MB) {
+		fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", device);
+	  exit(EXIT_FAILURE);
+	}
+  printf("Device %s opened succesfully\n", device);
 }
