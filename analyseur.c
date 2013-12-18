@@ -18,7 +18,6 @@ int main(int argc, char ** argv)
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
 
   printf ("vFlag = %d, iFlag = %s, fFlag = %s, oFlag = %s\n",vFlag, iFlag, fFlag, oFlag);
-  
   char errbuf[PCAP_ERRBUF_SIZE];
   pcap_t *handle = NULL;
   openDevice(iFlag, handle, errbuf);
@@ -31,9 +30,9 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
   int index;
   int c;
   // o v f i
-  int optionsPresent[4] = {0,0,0,0};   
+  int optionsPresent[4] = {0,0,0,0};
   opterr = 0;
-     
+
   while ((c = getopt (argc, argv, "i:o:v:f:")) != -1)
     switch (c)
     {
@@ -62,7 +61,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
         if (optopt == 'v'
           || optopt == 'f'
           || optopt == 'i'
-          || optopt == 'o') 
+          || optopt == 'o')
           fprintf (stderr, "Option -%c requires an argument.\n", optopt);
         else if (isprint (optopt))
           fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -72,12 +71,12 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
       default:
         abort ();
     }
-     
+
     printf ("vFlag = %d, iFlag = %s, fFlag = %s, oFlag = %s\n",*vFlag, *iFlag, *fFlag, *oFlag);
-     
+
     for (index = optind; index < argc; index++)
       printf ("Non-option argument %s\n", argv[index]);
-   
+
     int missingOptions = 0;
     if( ! optionsPresent[0])
     {
@@ -90,7 +89,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
       missingOptions = 1;
     }
     if( ! optionsPresent[3])
-    {  
+    {
       printf("Option -i not present.\n");
       missingOptions = 1;
     }
@@ -112,17 +111,26 @@ void checkIfSudo()
 
 void openDevice(char * device, pcap_t * handle, char * errbuf)
 {
+  struct bpf_program fp;
+  char filter_exp[] = "port 23";
+  bpf_u_int32 mask;  /* The netmask of our sniffing device */
+  bpf_u_int32 net;  /* The IP of our sniffing device */
   printf("Opening device %s...\n", device);
 
-	handle = pcap_open_live(device, BUFSIZ, 1, 1000, errbuf);
-	if (handle == NULL)
+  handle = pcap_open_live(device, BUFSIZ, 1, 1000, errbuf); //Start sniffing
+  if (handle == NULL)
   {
-	  fprintf(stderr, "Couldn't open device %s: %s\n", device, errbuf);
-	  exit(EXIT_FAILURE);
-	}
-  if (pcap_datalink(handle) != DLT_EN10MB) {
-		fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", device);
-	  exit(EXIT_FAILURE);
-	}
+    fprintf(stderr, "Couldn't open device %s: %s\n", device, errbuf);
+    exit(EXIT_FAILURE);
+ }
+  if (pcap_datalink(handle) != DLT_EN10MB) { //Indicates the type of link layer headers
+  fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", device);
+    //fails if the device doesn't supply Ethernet headers
+    exit(EXIT_FAILURE);
+ }
   printf("Device %s opened succesfully\n", device);
+  if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
+    fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
+    exit(EXIT_FAILURE);
+   }
 }
