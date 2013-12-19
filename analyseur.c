@@ -258,7 +258,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   {
     case IPPROTO_TCP:
       printf("Protocol = TCP\n");
-      printf("Source Port = %d\nDestination Port = %d\n", ntohs(tcp->th_sport), ntohs(tcp->th_dport));
+      printf("Source Port = %d\n" ,ntohs(tcp->th_sport));
+      printf("Destination Port = %d\n", ntohs(tcp->th_dport));
       printf("Data Offset = %d\n", ntohs(tcp->th_offx2));
       printf("Window = %d\n", ntohs(tcp->th_win));
       break;
