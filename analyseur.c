@@ -124,6 +124,15 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
     printf("End of getOptions\n");
 }
 
+void printHelp(char ** argv)
+{
+    printf("Usage: %s [-f filter] -i interface -o file -v verbosity\n",argv[0]);
+    printf("  where -o and -i are mandatory and exclusive,\n");
+    printf("        -f is not mandatory,\n");
+    printf("        -v is mandatory and is an integer in [1,3] with 1 being low verbosity and 3 high verbosity.\n");
+    exit(EXIT_SUCCESS);
+}
+
 void checkIfSudo()
 {
   if(getuid() != 0)
@@ -159,15 +168,6 @@ void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
    }
 }
 
-void printHelp(char ** argv)
-{
-    printf("Usage: %s [-f filter] -i interface -o file -v verbosity\n",argv[0]);
-    printf("  where -o and -i are mandatory and exclusive,\n");
-    printf("        -f is not mandatory,\n");
-    printf("        -v is mandatory and is an integer in [1,3] with 1 being low verbosity and 3 high verbosity.\n");
-    exit(EXIT_SUCCESS);
-}
-
 void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet)
 {
   *packet = pcap_next(*handle, header);
@@ -192,37 +192,36 @@ void printHexPacket(const u_char * payload, int length, int offset)
 
   printf("%05d   ", offset);
   tape = payload;
-	for(i = 0; i < length; i++) {
-		printf("%02x ", *tape);
-		tape++;
-		/* print extra space after 8th byte for visual aid */
-		if (i == 7)
-			printf(" ");
-	}
-	/* print space to handle line less than 8 bytes */
-	if (length < 8)
-		printf(" ");
-	
-	/* fill hex gap with spaces if not full line */
-	if (length < 16) {
-		gap = 16 - length;
-		for (i = 0; i < gap; i++) {
-			printf("   ");
-		}
-	}
-	printf("   ");
-	
-	/* ascii (if printable) */
-	tape = payload;
-	for(i = 0; i < length; i++) {
-		if (isprint(*tape))
-			printf("%c", *tape);
-		else
-			printf(".");
-		tape++;
-	}
+  for(i = 0; i < length; i++) {
+    printf("%02x ", *tape);
+    tape++;
+    /* print extra space after 8th byte for visual aid */
+    if (i == 7)
+      printf(" ");
+  }
+  /* print space to handle line less than 8 bytes */
+  if (length < 8)
+    printf(" ");
 
-	printf("\n");
+  /* fill hex gap with spaces if not full line */
+  if (length < 16) {
+    gap = 16 - length;
+    for (i = 0; i < gap; i++) {
+      printf("   ");
+    }
+  }
+  printf("   ");
+
+  /* ascii (if printable) */
+  tape = payload;
+  for(i = 0; i < length; i++) {
+    if (isprint(*tape))
+      printf("%c", *tape);
+    else
+      printf(".");
+    tape++;
+    }
+    printf("\n");
 
 return;
 
@@ -259,11 +258,13 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   {
     case IPPROTO_TCP:
       printf("Protocol = TCP\n");
-      printf("Source Port = %d\n Destination Port = %d\n", ntohs(tcp->th_sport), ntohs(tcp->th_dport));
+      printf("Source Port = %d\nDestination Port = %d\n", ntohs(tcp->th_sport), ntohs(tcp->th_dport));
+      printf("Data Offset = %d\n", ntohs(tcp->th_offx2));
+      printf("Window = %d\n", ntohs(tcp->th_win));
       break;
     case IPPROTO_UDP:
       printf("Protocl = UDP\n");
-      printf("Source Port = %d\n Destination Port = %d\n", ntohs(udp->uh_sport), ntohs(udp->uh_dport));
+      printf("Source Port = %d\nDestination Port = %d\n", ntohs(udp->uh_sport), ntohs(udp->uh_dport));
       break;
     case IPPROTO_IP:
       printf("Protocol: IP\n");
