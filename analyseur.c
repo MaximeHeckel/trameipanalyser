@@ -6,7 +6,7 @@
 
 void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
 void checkIfSudo();
-void openDevice(char * device,pcap_t * handle, char * errbuf);
+void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
 void printHelp(char ** argv);
 
 int main(int argc, char ** argv)
@@ -19,12 +19,17 @@ int main(int argc, char ** argv)
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
 
-  char errbuf[PCAP_ERRBUF_SIZE];
+  char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
-  openDevice(iFlag, handle, errbuf);
+  openDevice(&iFlag, &handle, &errbuf);
 
-  //struct pcap_pkthdr header;	/* The header that pcap gives us */
-	//const u_char *packet;		/* The actual packet */
+  struct pcap_pkthdr header;	/* The header that pcap gives us */
+	const u_char *packet;		/* The actual packet */
+  packet = pcap_next(handle, &header);
+	/* Print its length */
+	printf("Jacked a packet with length of [%d]\n", header.len);
+	/* And close the session */
+	pcap_close(handle);
   return 0;
 }
 
@@ -112,28 +117,28 @@ void checkIfSudo()
   }
 }
 
-void openDevice(char * device, pcap_t * handle, char * errbuf)
+void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
 {
   struct bpf_program fp;
   char filter_exp[] = "port 23";
   bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
   bpf_u_int32 net = 0;  /* The IP of our sniffing device */
-  printf("Opening device %s...\n", device);
+  printf("Opening device %s...\n", *device);
 
-  handle = pcap_open_live(device, BUFSIZ, 1, 1000, errbuf); //Start sniffing
-  if (handle == NULL)
+  *handle = pcap_open_live(*device, BUFSIZ, 1, 1000, *errbuf); //Start sniffing
+  if (*handle == NULL)
   {
-    fprintf(stderr, "Couldn't open device %s: %s\n", device, errbuf);
+    fprintf(stderr, "Couldn't open device %s: %s\n", *device, *errbuf);
     exit(EXIT_FAILURE);
  }
-  if (pcap_datalink(handle) != DLT_EN10MB) { //Indicates the type of link layer headers
-  fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", device);
+  if (pcap_datalink(*handle) != DLT_EN10MB) { //Indicates the type of link layer headers
+  fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", *device);
     //fails if the device doesn't supply Ethernet headers
     exit(EXIT_FAILURE);
  }
-  printf("Device %s opened succesfully\n", device);
-  if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
-    fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
+  printf("Device %s opened succesfully\n", *device);
+  if (pcap_compile(*handle, &fp, filter_exp, 0, net) == -1) {
+    fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(*handle));
     exit(EXIT_FAILURE);
    }
 }
