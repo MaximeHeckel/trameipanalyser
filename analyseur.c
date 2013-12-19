@@ -213,7 +213,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       printf("Protocl = UDP\n");
       break;
     default:
-      printf("Unknown\n");
+      printf("Protocole Unknown\n");
       break;
   }
 
