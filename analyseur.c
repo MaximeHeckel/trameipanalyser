@@ -7,6 +7,8 @@
 void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
 void checkIfSudo();
 void openDevice(char * device,pcap_t * handle, char * errbuf);
+void printHelp(char ** argv);
+
 int main(int argc, char ** argv)
 {
   checkIfSudo();
@@ -17,7 +19,6 @@ int main(int argc, char ** argv)
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
 
-  printf ("vFlag = %d, iFlag = %s, fFlag = %s, oFlag = %s\n",vFlag, iFlag, fFlag, oFlag);
   char errbuf[PCAP_ERRBUF_SIZE];
   pcap_t *handle = NULL;
   openDevice(iFlag, handle, errbuf);
@@ -31,11 +32,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
 {
   if(argc < 2)
   {
-    printf("Usage: %s [-f filter] -i interface -o file -v verbosity\n",argv[0]);
-    printf("  where -o and -i are mandatory and exclusive,\n");
-    printf("        -f is not mandatory,\n");
-    printf("        -v is mandatory and is an integer in [1,3] with 1 being low verbosity and 3 high verbosity.\n");
-    exit(EXIT_SUCCESS);
+    printHelp(argv);
   }
   int index;
   int c;
@@ -119,8 +116,8 @@ void openDevice(char * device, pcap_t * handle, char * errbuf)
 {
   struct bpf_program fp;
   char filter_exp[] = "port 23";
-  bpf_u_int32 mask;  /* The netmask of our sniffing device */
-  bpf_u_int32 net;  /* The IP of our sniffing device */
+  bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
+  bpf_u_int32 net = 0;  /* The IP of our sniffing device */
   printf("Opening device %s...\n", device);
 
   handle = pcap_open_live(device, BUFSIZ, 1, 1000, errbuf); //Start sniffing
@@ -139,4 +136,13 @@ void openDevice(char * device, pcap_t * handle, char * errbuf)
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
     exit(EXIT_FAILURE);
    }
+}
+
+void printHelp(char ** argv)
+{
+    printf("Usage: %s [-f filter] -i interface -o file -v verbosity\n",argv[0]);
+    printf("  where -o and -i are mandatory and exclusive,\n");
+    printf("        -f is not mandatory,\n");
+    printf("        -v is mandatory and is an integer in [1,3] with 1 being low verbosity and 3 high verbosity.\n");
+    exit(EXIT_SUCCESS);
 }
