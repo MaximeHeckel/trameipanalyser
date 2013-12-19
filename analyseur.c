@@ -1,5 +1,5 @@
 #include "analyseur.h"
-//MESSAGE: J'AI FAIT UNE BRANCHE FUNCTIONDEV POUR DEV LES FONCTIONS SANS LE PB DES INTERFACES
+
 void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
 void checkIfSudo();
 void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
