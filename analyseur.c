@@ -29,6 +29,14 @@ int main(int argc, char ** argv)
 
 void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag)
 {
+  if(argc < 2)
+  {
+    printf("Usage: %s [-f filter] -i interface -o file -v verbosity\n",argv[0]);
+    printf("  where -o and -i are mandatory and exclusive,\n");
+    printf("        -f is not mandatory,\n");
+    printf("        -v is mandatory and is an integer in [1,3] with 1 being low verbosity and 3 high verbosity.\n");
+    exit(EXIT_SUCCESS);
+  }
   int index;
   int c;
   // o v f i
@@ -46,7 +54,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
         *vFlag = atoi(optarg);
         if( *vFlag < 1 || *vFlag > 3)
         {
-          fprintf(stderr, "Option -v requires a value in [1,3]\n");
+          fprintf(stderr, "Option -v requires a value in [1,3].\n");
           exit(EXIT_FAILURE);
         }
         optionsPresent[1] = 1;
@@ -81,7 +89,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
 
     if(optionsPresent[0] && optionsPresent[3])
     {
-      fprintf(stderr, "Options -i and -o cannot be present at the same time");
+      fprintf(stderr, "Options -i and -o cannot be present at the same time.\n");
       exit(EXIT_FAILURE);
     }
     if( ! optionsPresent[0] && !optionsPresent[3])
