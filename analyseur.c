@@ -1,13 +1,10 @@
-#include <pcap.h> 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "analyseur.h"
 
 void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
 void checkIfSudo();
 void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
 void printHelp(char ** argv);
+void sniff_packet(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
 
 int main(int argc, char ** argv)
 {
@@ -25,9 +22,8 @@ int main(int argc, char ** argv)
 
   struct pcap_pkthdr header;	/* The header that pcap gives us */
 	const u_char *packet;		/* The actual packet */
-  packet = pcap_next(handle, &header);
-	/* Print its length */
-	printf("Jacked a packet with length of [%d]\n", header.len);
+  sniff_packet(&handle, &header, &packet);
+  //pcap_loop(handle, -1,got_packet , NULL);
 	/* And close the session */
 	pcap_close(handle);
   return 0;
@@ -150,4 +146,11 @@ void printHelp(char ** argv)
     printf("        -f is not mandatory,\n");
     printf("        -v is mandatory and is an integer in [1,3] with 1 being low verbosity and 3 high verbosity.\n");
     exit(EXIT_SUCCESS);
+}
+
+void sniff_packet(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet)
+{
+  *packet = pcap_next(*handle, header);
+		/* Print its length */
+	printf("Jacked a packet with length of [%d]\n", header->len);
 }
