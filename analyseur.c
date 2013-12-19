@@ -6,6 +6,7 @@ void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
 void printHelp(char ** argv);
 void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
 void printPacket(const u_char * packet, int length);
+void printHexPacket(const u_char * payload, int length, int offset);
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void openFile(char * name, FILE ** file);
 
@@ -17,7 +18,7 @@ int main(int argc, char ** argv)
   char *iFlag = NULL;
   char *oFlag = NULL;
   char *fFlag = NULL;
-  int numberpacket = 1;
+  int numberpacket = 20;
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
   //printf("After getOptions\n");
@@ -183,12 +184,57 @@ void printPacket(const u_char * packet, int length)
   }
   printf("\n");
 }
+void printHexPacket(const u_char * payload, int length, int offset)
+{
+  int i;
+  int gap;
+  const u_char *tape;
+
+  printf("%05d   ", offset);
+  tape = payload;
+	for(i = 0; i < length; i++) {
+		printf("%02x ", *tape);
+		tape++;
+		/* print extra space after 8th byte for visual aid */
+		if (i == 7)
+			printf(" ");
+	}
+	/* print space to handle line less than 8 bytes */
+	if (length < 8)
+		printf(" ");
+	
+	/* fill hex gap with spaces if not full line */
+	if (length < 16) {
+		gap = 16 - length;
+		for (i = 0; i < gap; i++) {
+			printf("   ");
+		}
+	}
+	printf("   ");
+	
+	/* ascii (if printable) */
+	tape = payload;
+	for(i = 0; i < length; i++) {
+		if (isprint(*tape))
+			printf("%c", *tape);
+		else
+			printf(".");
+		tape++;
+	}
+
+	printf("\n");
+
+return;
+
+
+}
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
   const struct sniff_ethernet *ethernet;
   const struct sniff_ip *ip;
   const struct sniff_tcp *tcp;
   const struct sniff_udp *udp;
+  const char* payload;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
   int size_tcp;
@@ -205,7 +251,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     printf("INVALID IP HEADER");
     return;
   }*/
-
+  printf("TRACE: \n");
   printf(" From: %s\n To: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
 
   //Switch sur type protocol
@@ -220,14 +266,15 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       printf("Source Port = %d\n Destination Port = %d\n", ntohs(udp->uh_sport), ntohs(udp->uh_dport));
       break;
     case IPPROTO_IP:
-      printf("   Protocol: IP\n");
+      printf("Protocol: IP\n");
       break;
     default:
       printf("Protocole Unknown\n");
       break;
   }
-
+  //payload = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
 }
+
 void openFile(char * name, FILE ** file)
 {
     *file = fopen(name, "r");
