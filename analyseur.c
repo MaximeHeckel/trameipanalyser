@@ -187,6 +187,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 {
   const struct sniff_ethernet *ethernet;
   const struct sniff_ip *ip;
+  const struct sniff_tcp *tcp;
+  const struct sniff_udp *udp;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
   int size_tcp;
@@ -195,6 +197,9 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   ethernet = (struct sniff_ethernet*)(packet);
   ip = (struct sniff_ip*)(packet+size_ethernet);
   size_ip=IP_HL(ip)*4;
+  tcp = (struct sniff_tcp*)(packet+size_ip+size_ethernet);
+  size_tcp=TH_OFF(tcp)*4;
+  udp = (struct sniff_udp*)(packet+SIZE_UDP+size_ethernet);
   /*if(size_ip<20)
   {
     printf("INVALID IP HEADER");
@@ -208,6 +213,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   {
     case IPPROTO_TCP:
       printf("Protocol = TCP\n");
+      printf("Source Port = %d\n Destination Port = %d\n", ntohs(tcp->th_sport), ntohs(tcp->th_dport));
       break;
     case IPPROTO_UDP:
       printf("Protocl = UDP\n");
