@@ -77,5 +77,4 @@ struct sniff_udp {
   u_short uh_ulen;                /* udp length */
   u_short uh_sum;
 };
-/* udp checksum */
 #endif

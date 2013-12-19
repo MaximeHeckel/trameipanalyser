@@ -6,8 +6,8 @@ void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
 void printHelp(char ** argv);
 void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
 void printPacket(const u_char * packet, int length);
-void openFile(char * name, FILE ** file);
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+void openFile(char * name, FILE ** file);
 
 
 int main(int argc, char ** argv)
@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
   {*/
     openDevice(&iFlag, &handle, &errbuf);
     sniffPacket(&handle, &header, &packet);
-    //printPacket(packet, header.len);
+    printPacket(packet, header.len);
     pcap_loop(handle, numberpacket, got_packet, NULL);
   /*}
   else
@@ -217,6 +217,10 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       break;
     case IPPROTO_UDP:
       printf("Protocl = UDP\n");
+      printf("Source Port = %d\n Destination Port = %d\n", ntohs(udp->uh_sport), ntohs(udp->uh_dport));
+      break;
+    case IPPROTO_IP:
+      printf("   Protocol: IP\n");
       break;
     default:
       printf("Protocole Unknown\n");
