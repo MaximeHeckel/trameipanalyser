@@ -4,7 +4,8 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
 void checkIfSudo();
 void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
 void printHelp(char ** argv);
-void sniff_packet(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
+void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
+void printPacket(const u_char * packet, int length);
 
 int main(int argc, char ** argv)
 {
@@ -22,7 +23,8 @@ int main(int argc, char ** argv)
 
   struct pcap_pkthdr header;	/* The header that pcap gives us */
 	const u_char *packet;		/* The actual packet */
-  sniff_packet(&handle, &header, &packet);
+  sniffPacket(&handle, &header, &packet);
+  printPacket(packet, header.len);
   //pcap_loop(handle, -1,got_packet , NULL);
 	/* And close the session */
 	pcap_close(handle);
@@ -148,9 +150,19 @@ void printHelp(char ** argv)
     exit(EXIT_SUCCESS);
 }
 
-void sniff_packet(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet)
+void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet)
 {
   *packet = pcap_next(*handle, header);
 		/* Print its length */
-	printf("Jacked a packet with length of [%d]\n", header->len);
+	printf("Jacked packet with length of [%d]\n", header->len);
+}
+
+void printPacket(const u_char * packet, int length)
+{
+  int i = 0;
+  for(i=0; i < length; i++)
+  {
+    printf("%x ", packet[i]);
+  }
+  printf("\n");
 }
