@@ -6,6 +6,7 @@ void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
 void printHelp(char ** argv);
 void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
 void printPacket(const u_char * packet, int length);
+void openFile(char * name, FILE ** file);
 
 int main(int argc, char ** argv)
 {
@@ -16,17 +17,31 @@ int main(int argc, char ** argv)
   char *fFlag = NULL;
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
+  printf("After getOptions\n");
+  int strcmpRes = strcmp(iFlag, "(null)");
+  printf("After strcmp\n");
+  printf("Strcmp of iFlag:%d",strcmpRes);
 
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
-  openDevice(&iFlag, &handle, &errbuf);
 
   struct pcap_pkthdr header;	/* The header that pcap gives us */
 	const u_char *packet;		/* The actual packet */
-  sniffPacket(&handle, &header, &packet);
-  printPacket(packet, header.len);
-  //pcap_loop(handle, -1,got_packet , NULL);
-	/* And close the session */
+/*
+  if(!strcmp(iFlag,"(null)"))
+  {
+    openDevice(&iFlag, &handle, &errbuf);
+    sniffPacket(&handle, &header, &packet);
+    printPacket(packet, header.len);
+    //pcap_loop(handle, -1,got_packet , NULL);
+  }
+  else
+  {
+    FILE * file = NULL;
+    openFile(oFlag, &file);
+  }
+  */
+  /* And close the session */
 	pcap_close(handle);
   return 0;
 }
@@ -102,8 +117,7 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
       fprintf(stderr,"Option -v not present.\n");
       exit(EXIT_FAILURE);
     }
-
-
+    printf("End of getOptions\n");
 }
 
 void checkIfSudo()
@@ -165,4 +179,19 @@ void printPacket(const u_char * packet, int length)
     printf("%x ", packet[i]);
   }
   printf("\n");
+}
+
+void openFile(char * name, FILE ** file)
+{
+    *file = fopen(name, "r");
+    if(*file == NULL)
+    {
+      fprintf(stderr,"File %s could not be opened.\n", name);
+      exit(EXIT_FAILURE);
+    }
+    else
+    {
+      printf("File %s opened succesfully.\n",name);
+    }
+
 }
