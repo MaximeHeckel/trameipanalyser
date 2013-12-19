@@ -7,6 +7,8 @@ void printHelp(char ** argv);
 void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
 void printPacket(const u_char * packet, int length);
 void openFile(char * name, FILE ** file);
+void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+
 
 int main(int argc, char ** argv)
 {
@@ -15,25 +17,26 @@ int main(int argc, char ** argv)
   char *iFlag = NULL;
   char *oFlag = NULL;
   char *fFlag = NULL;
+  int numberpacket = 1;
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
-  printf("After getOptions\n");
+  //printf("After getOptions\n");
   int strcmpRes = strcmp(iFlag, "(null)");
-  printf("After strcmp\n");
-  printf("Strcmp of iFlag:%d",strcmpRes);
+  //printf("After strcmp\n");
+  //printf("Strcmp of iFlag:%d",strcmpRes);
 
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
 
-  struct pcap_pkthdr header;	/* The header that pcap gives us */
-	const u_char *packet;		/* The actual packet */
+  struct pcap_pkthdr header;/* The header that pcap gives us */
+  const u_char *packet;/* The actual packet */
 
   /*if(!strcmp(iFlag,"(null)"))
   {*/
     openDevice(&iFlag, &handle, &errbuf);
     sniffPacket(&handle, &header, &packet);
-    printPacket(packet, header.len);
-    //pcap_loop(handle, -1,got_packet , NULL);
+    //printPacket(packet, header.len);
+    pcap_loop(handle, numberpacket, got_packet, NULL);
   /*}
   else
   {
@@ -42,7 +45,7 @@ int main(int argc, char ** argv)
   }*/
 
   /* And close the session */
-	pcap_close(handle);
+  pcap_close(handle);
   return 0;
 }
 
@@ -167,8 +170,8 @@ void printHelp(char ** argv)
 void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet)
 {
   *packet = pcap_next(*handle, header);
-		/* Print its length */
-	printf("Jacked packet with length of [%d]\n", header->len);
+  /* Print its length */
+ printf("Jacked packet with length of [%d]\n", header->len);
 }
 
 void printPacket(const u_char * packet, int length)
@@ -180,7 +183,41 @@ void printPacket(const u_char * packet, int length)
   }
   printf("\n");
 }
+void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
+{
+  const struct sniff_ethernet *ethernet;
+  const struct sniff_ip *ip;
+  int size_ethernet = sizeof(struct sniff_ethernet);
+  int size_ip;
+  int size_tcp;
+  int size_payload;
 
+  ethernet = (struct sniff_ethernet*)(packet);
+  ip = (struct sniff_ip*)(packet+size_ethernet);
+  size_ip=IP_HL(ip)*4;
+  /*if(size_ip<20)
+  {
+    printf("INVALID IP HEADER");
+    return;
+  }*/
+
+  printf(" From: %s\n To: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
+
+  //Switch sur type protocol
+  switch(ip->ip_p)
+  {
+    case IPPROTO_TCP:
+      printf("Protocol = TCP\n");
+      break;
+    case IPPROTO_UDP:
+      printf("Protocl = UDP\n");
+      break;
+    default:
+      printf("Unknown\n");
+      break;
+  }
+
+}
 void openFile(char * name, FILE ** file)
 {
     *file = fopen(name, "r");
@@ -195,3 +232,4 @@ void openFile(char * name, FILE ** file)
     }
 
 }
+
