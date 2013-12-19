@@ -27,20 +27,20 @@ int main(int argc, char ** argv)
 
   struct pcap_pkthdr header;	/* The header that pcap gives us */
 	const u_char *packet;		/* The actual packet */
-/*
-  if(!strcmp(iFlag,"(null)"))
-  {
+
+  /*if(!strcmp(iFlag,"(null)"))
+  {*/
     openDevice(&iFlag, &handle, &errbuf);
     sniffPacket(&handle, &header, &packet);
     printPacket(packet, header.len);
     //pcap_loop(handle, -1,got_packet , NULL);
-  }
+  /*}
   else
   {
     FILE * file = NULL;
     openFile(oFlag, &file);
-  }
-  */
+  }*/
+
   /* And close the session */
 	pcap_close(handle);
   return 0;
