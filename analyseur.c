@@ -23,6 +23,8 @@ int main(int argc, char ** argv)
   pcap_t *handle = NULL;
   openDevice(iFlag, handle, errbuf);
 
+  //struct pcap_pkthdr header;	/* The header that pcap gives us */
+	//const u_char *packet;		/* The actual packet */
   return 0;
 }
 
@@ -76,28 +78,24 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
     printf ("vFlag = %d, iFlag = %s, fFlag = %s, oFlag = %s\n",*vFlag, *iFlag, *fFlag, *oFlag);
      
     for (index = optind; index < argc; index++)
-      printf ("Non-option argument %s\n", argv[index]);
+      fprintf (stderr,"Non-option argument %s\n", argv[index]);
    
-    int missingOptions = 0;
-    if( ! optionsPresent[0])
+    if(optionsPresent[0] && optionsPresent[3])
     {
-      printf("Option -o not present.\n");
-      missingOptions = 1;
+      fprintf(stderr, "Options -i and -o cannot be present at the same time");
+      exit(EXIT_FAILURE);
+    }
+    if( ! optionsPresent[0] && !optionsPresent[3])
+    {
+      fprintf(stderr,"Options -o or -i must be present.\n");
+      exit(EXIT_FAILURE);
     }
     if( ! optionsPresent[1])
     {
-      printf("Option -v not present.\n");
-      missingOptions = 1;
-    }
-    if( ! optionsPresent[3])
-    {  
-      printf("Option -i not present.\n");
-      missingOptions = 1;
-    }
-    if(missingOptions)
-    {
+      fprintf(stderr,"Option -v not present.\n");
       exit(EXIT_FAILURE);
     }
+
 
 }
 
