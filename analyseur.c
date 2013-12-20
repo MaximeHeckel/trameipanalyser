@@ -7,6 +7,7 @@ void printHelp(char ** argv);
 void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
 void printPacket(const u_char * packet, int length);
 void printHexPacket(const u_char * payload, int length, int offset);
+void print_payload(const u_char payload, int len);
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void openFile(char * name, FILE ** file);
 
@@ -22,7 +23,7 @@ int main(int argc, char ** argv)
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
   //printf("After getOptions\n");
-  int strcmpRes = strcmp(iFlag, "(null)");
+  //int strcmpRes = strcmp(iFlag, "(null)");
   //printf("After strcmp\n");
   //printf("Strcmp of iFlag:%d",strcmpRes);
 
@@ -146,7 +147,7 @@ void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
 {
   struct bpf_program fp;
   char filter_exp[] = "port 80";
-  bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
+  //bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
   bpf_u_int32 net = 0;  /* The IP of our sniffing device */
   printf("Opening device %s...\n", *device);
 
@@ -224,20 +225,19 @@ void printHexPacket(const u_char * payload, int length, int offset)
     printf("\n");
 
 return;
-
-
 }
+
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
   const struct sniff_ethernet *ethernet;
   const struct sniff_ip *ip;
   const struct sniff_tcp *tcp;
   const struct sniff_udp *udp;
-  const char* payload;
+  //const char* payload;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
   int size_tcp;
-  int size_payload;
+  //int size_payload;
 
   ethernet = (struct sniff_ethernet*)(packet);
   ip = (struct sniff_ip*)(packet+size_ethernet);
@@ -245,13 +245,35 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   tcp = (struct sniff_tcp*)(packet+size_ip+size_ethernet);
   size_tcp=TH_OFF(tcp)*4;
   udp = (struct sniff_udp*)(packet+SIZE_UDP+size_ethernet);
-  /*if(size_ip<20)
-  {
-    printf("INVALID IP HEADER");
-    return;
-  }*/
+
+
+
+  /****************************/
+  //SOLUTION MATCHED IP
+
+  char *tab;
+
   printf("TRACE: \n");
-  printf("From: %s\nTo: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
+  printf("Destination host address : ");
+        printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+    ntohs ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
+    ntohs ((unsigned)ethernet->ether_dhost[1]),
+    ntohs ((unsigned)ethernet->ether_dhost[2]),
+    ntohs ((unsigned)ethernet->ether_dhost[3]),
+    ntohs ((unsigned)ethernet->ether_dhost[4]),
+    ntohs ((unsigned)ethernet->ether_dhost[5]));
+    printf("Source host address : ");
+        printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+    ntohs ((unsigned)ethernet->ether_shost[0]),
+    ntohs ((unsigned)ethernet->ether_shost[1]),
+    ntohs ((unsigned)ethernet->ether_shost[2]),
+    ntohs ((unsigned)ethernet->ether_shost[3]),
+    ntohs ((unsigned)ethernet->ether_shost[4]),
+    ntohs ((unsigned)ethernet->ether_shost[5]));
+    //printf("%x\n",ntohs(ethernet->ether_shost));
+        //printf("Content : [%s]\n", ethernet->ether_shost);
+        printf("Ether_type : [%i]\n", ethernet->ether_type);
+  printf("From IP: %s\nTo: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
 
   //Switch sur type protocol
   switch(ip->ip_p)
@@ -279,7 +301,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       printf("Protocole Unknown\n");
       break;
   }
-  //payload = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
+  return;
 }
 
 void openFile(char * name, FILE ** file)

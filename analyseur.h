@@ -14,11 +14,10 @@
 #include <netinet/tcp.h>
 #include <netinet/ip.h>
 #include <net/ethernet.h>
-
 #include <unistd.h>
 
 /* Ethernet addresses are 6 bytes */
-#define ETHER_ADDR_LEN	6
+#define ETHER_ADDR_LEN  6
 #define SIZE_UDP        8
 
 /* Ethernet header */
