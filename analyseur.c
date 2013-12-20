@@ -18,7 +18,7 @@ int main(int argc, char ** argv)
   char *iFlag = NULL;
   char *oFlag = NULL;
   char *fFlag = NULL;
-  int numberpacket = 20;
+  int numberpacket = 10;
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
   //printf("After getOptions\n");
@@ -145,7 +145,7 @@ void checkIfSudo()
 void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
 {
   struct bpf_program fp;
-  char filter_exp[] = "port 23";
+  char filter_exp[] = "port 80";
   bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
   bpf_u_int32 net = 0;  /* The IP of our sniffing device */
   printf("Opening device %s...\n", *device);
@@ -251,24 +251,29 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     return;
   }*/
   printf("TRACE: \n");
-  printf(" From: %s\n To: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
+  printf("From: %s\nTo: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
 
   //Switch sur type protocol
   switch(ip->ip_p)
   {
+    case IPPROTO_IP:
+      printf("Protocole IP\n");
+      printf("Version = %d\n", ip->ip_vhl);
+      printf("Length = %d\n", ip->ip_len);
+      printf("\n");
+      break;
     case IPPROTO_TCP:
-      printf("Protocol = TCP\n");
+      printf("Protocole TCP\n");
       printf("Source Port = %d\n" ,ntohs(tcp->th_sport));
       printf("Destination Port = %d\n", ntohs(tcp->th_dport));
       printf("Data Offset = %d\n", ntohs(tcp->th_offx2));
       printf("Window = %d\n", ntohs(tcp->th_win));
+      printf("\n");
       break;
     case IPPROTO_UDP:
-      printf("Protocl = UDP\n");
+      printf("Protocole UDP\n");
       printf("Source Port = %d\nDestination Port = %d\n", ntohs(udp->uh_sport), ntohs(udp->uh_dport));
-      break;
-    case IPPROTO_IP:
-      printf("Protocol: IP\n");
+      printf("\n");
       break;
     default:
       printf("Protocole Unknown\n");
