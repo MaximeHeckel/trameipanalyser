@@ -255,37 +255,36 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 
   printf("TRACE: \n");
   printf("Destination host address : ");
-        printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
-    ntohs ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
-    ntohs ((unsigned)ethernet->ether_dhost[1]),
-    ntohs ((unsigned)ethernet->ether_dhost[2]),
-    ntohs ((unsigned)ethernet->ether_dhost[3]),
-    ntohs ((unsigned)ethernet->ether_dhost[4]),
-    ntohs ((unsigned)ethernet->ether_dhost[5]));
-    printf("Source host address : ");
-        printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
-    ntohs ((unsigned)ethernet->ether_shost[0]),
-    ntohs ((unsigned)ethernet->ether_shost[1]),
-    ntohs ((unsigned)ethernet->ether_shost[2]),
-    ntohs ((unsigned)ethernet->ether_shost[3]),
-    ntohs ((unsigned)ethernet->ether_shost[4]),
-    ntohs ((unsigned)ethernet->ether_shost[5]));
-    //printf("%x\n",ntohs(ethernet->ether_shost));
-        //printf("Content : [%s]\n", ethernet->ether_shost);
-        printf("Ether_type : [%i]\n", ethernet->ether_type);
+  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+  ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
+  ((unsigned)ethernet->ether_dhost[1]),
+  ((unsigned)ethernet->ether_dhost[2]),
+  ((unsigned)ethernet->ether_dhost[3]),
+  ((unsigned)ethernet->ether_dhost[4]),
+  ((unsigned)ethernet->ether_dhost[5]));
+  printf("Source host address : ");
+  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+  ((unsigned)ethernet->ether_shost[0]),
+  ((unsigned)ethernet->ether_shost[1]),
+  ((unsigned)ethernet->ether_shost[2]),
+  ((unsigned)ethernet->ether_shost[3]),
+  ((unsigned)ethernet->ether_shost[4]),
+  ((unsigned)ethernet->ether_shost[5]));
+
+  printf("Ether_type : [%i]\n", ethernet->ether_type);
   printf("From IP: %s\nTo: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
 
   //Switch sur type protocol
   switch(ip->ip_p)
   {
     case IPPROTO_IP:
-      printf("Protocole IP\n");
+      printf("Protocol IP\n");
       printf("Version = %d\n", ip->ip_vhl);
       printf("Length = %d\n", ip->ip_len);
       printf("\n");
       break;
     case IPPROTO_TCP:
-      printf("Protocole TCP\n");
+      printf("Protocol TCP\n");
       printf("Source Port = %d\n" ,ntohs(tcp->th_sport));
       printf("Destination Port = %d\n", ntohs(tcp->th_dport));
       printf("Data Offset = %d\n", ntohs(tcp->th_offx2));
@@ -293,12 +292,12 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       printf("\n");
       break;
     case IPPROTO_UDP:
-      printf("Protocole UDP\n");
+      printf("Protocol UDP\n");
       printf("Source Port = %d\nDestination Port = %d\n", ntohs(udp->uh_sport), ntohs(udp->uh_dport));
       printf("\n");
       break;
     default:
-      printf("Protocole Unknown\n");
+      printf("Unknown Protocol\n");
       break;
   }
   return;
