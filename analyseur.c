@@ -234,18 +234,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   size_tcp=TH_OFF(tcp)*4;
   udp = (struct sniff_udp*)(packet+SIZE_UDP+size_ethernet);
 
-
-
-  /****************************/
-  //SOLUTION MATCHED IP
-
-  char *aux = inet_ntoa(ip->ip_src);
-  char *ab = strcpy(malloc(strlen(aux)+1), aux);
-  printf("%s\n",ab);
-  char *bux = inet_ntoa(ip->ip_dst);
-  char *cd = strcpy(malloc(strlen(aux)+1), aux);
-  printf("%s\n",cd);
-
   printf("TRACE: \n");
   printf("Destination host address : ");
   printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -265,7 +253,12 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   ((unsigned)ethernet->ether_shost[5]));
 
   printf("Ether_type : [%i]\n", ethernet->ether_type);
-  printf("From IP: %s\nTo: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
+
+  char *aux = inet_ntoa(ip->ip_src);
+  char *ab = strcpy(malloc(strlen(aux)+1), aux);
+  char *bux = inet_ntoa(ip->ip_dst);
+  char *cd = strcpy(malloc(strlen(aux)+1), aux);
+  printf("From IP: %s\nTo: %s\n",ab,cd);
   printf("Version = %d\n", ip->ip_vhl);
   printf("Length = %d\n", ip->ip_len);
 
