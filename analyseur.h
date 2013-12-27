@@ -77,3 +77,14 @@ struct sniff_udp {
   u_short uh_sum;
 };
 #endif
+
+void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
+void checkIfSudo();
+void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
+void printHelp(char ** argv);
+void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
+void printPacket(const u_char * packet, int length);
+void printHexPacket(const u_char * payload, int length, int offset);
+void print_payload(const u_char payload, int len);
+void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+void openFile(char * name, FILE ** file);
