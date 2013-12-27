@@ -1,17 +1,5 @@
 #include "analyseur.h"
 
-void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
-void checkIfSudo();
-void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
-void printHelp(char ** argv);
-void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet);
-void printPacket(const u_char * packet, int length);
-void printHexPacket(const u_char * payload, int length, int offset);
-void print_payload(const u_char payload, int len);
-void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
-void openFile(char * name, FILE ** file);
-
-
 int main(int argc, char ** argv)
 {
   checkIfSudo();
@@ -251,7 +239,12 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   /****************************/
   //SOLUTION MATCHED IP
 
-  char *tab;
+  char *aux = inet_ntoa(ip->ip_src);
+  char *ab = strcpy(malloc(strlen(aux)+1), aux);
+  printf("%s\n",ab);
+  char *bux = inet_ntoa(ip->ip_dst);
+  char *cd = strcpy(malloc(strlen(aux)+1), aux);
+  printf("%s\n",cd);
 
   printf("TRACE: \n");
   printf("Destination host address : ");
@@ -273,16 +266,12 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 
   printf("Ether_type : [%i]\n", ethernet->ether_type);
   printf("From IP: %s\nTo: %s\n",inet_ntoa(ip->ip_src),inet_ntoa(ip->ip_dst));
+  printf("Version = %d\n", ip->ip_vhl);
+  printf("Length = %d\n", ip->ip_len);
 
   //Switch sur type protocol
   switch(ip->ip_p)
   {
-    case IPPROTO_IP:
-      printf("Protocol IP\n");
-      printf("Version = %d\n", ip->ip_vhl);
-      printf("Length = %d\n", ip->ip_len);
-      printf("\n");
-      break;
     case IPPROTO_TCP:
       printf("Protocol TCP\n");
       printf("Source Port = %d\n" ,ntohs(tcp->th_sport));
