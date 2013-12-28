@@ -173,14 +173,14 @@ void printPacket(const u_char * packet, int length)
   }
   printf("\n");
 }
-void printHexPacket(const u_char * payload, int length, int offset)
+void printHexPacket(const u_char * trame, int length, int offset)
 {
   int i;
   int gap;
   const u_char *tape;
 
   printf("%05d   ", offset);
-  tape = payload;
+  tape = trame;
   for(i = 0; i < length; i++) {
     printf("%02x ", *tape);
     tape++;
@@ -192,17 +192,8 @@ void printHexPacket(const u_char * payload, int length, int offset)
   if (length < 8)
     printf(" ");
 
-  /* fill hex gap with spaces if not full line */
-  if (length < 16) {
-    gap = 16 - length;
-    for (i = 0; i < gap; i++) {
-      printf("   ");
-    }
-  }
-  printf("   ");
-
   /* ascii (if printable) */
-  tape = payload;
+  tape = trame;
   for(i = 0; i < length; i++) {
     if (isprint(*tape))
       printf("%c", *tape);
@@ -212,8 +203,36 @@ void printHexPacket(const u_char * payload, int length, int offset)
     }
     printf("\n");
 
-return;
-}
+    return;
+  }
+
+  void print_payload(const u_char *trame, int len)
+  {
+
+        int len_rem = len;
+        int line_width = 16;                        /* number of bytes per line */
+        int line_len;
+        int offset = 0;                                        /* zero-based offset counter */
+        const u_char *ch = trame;
+
+        if (len <= 0)
+                return;
+
+        if (len <= line_width) {
+                printHexPacket(ch, len, offset);
+                return;
+        }
+                printHexPacket(ch, line_len, offset);
+                len_rem = len_rem - line_len;
+                ch = ch + line_len;
+                offset = offset + line_width;
+
+                if (len_rem <= line_width) {
+                        printHexPacket(ch, len_rem, offset);
+
+                }
+    return;
+  }
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
@@ -221,11 +240,11 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   const struct sniff_ip *ip;
   const struct sniff_tcp *tcp;
   const struct sniff_udp *udp;
-  //const char* payload;
+  const u_char* trame;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
   int size_tcp;
-  //int size_payload;
+  int size_trame;
 
   ethernet = (struct sniff_ethernet*)(packet);
   ip = (struct sniff_ip*)(packet+size_ethernet);
@@ -257,7 +276,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   char *aux = inet_ntoa(ip->ip_src);
   char *ab = strcpy(malloc(strlen(aux)+1), aux);
   char *bux = inet_ntoa(ip->ip_dst);
-  char *cd = strcpy(malloc(strlen(aux)+1), aux);
+  char *cd = strcpy(malloc(strlen(aux)+1), bux);
   printf("From IP: %s\nTo: %s\n",ab,cd);
   printf("Version = %d\n", ip->ip_vhl);
   printf("Length = %d\n", ip->ip_len);
@@ -282,6 +301,20 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       printf("Unknown Protocol\n");
       break;
   }
+
+  trame = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
+
+        /* compute tcp payload (segment) size */
+        size_trame = ntohs(ip->ip_len) - (size_ip + size_tcp);
+
+        /*
+         * Print payload data; it might be binary, so don't just
+         * treat it as a string.
+         */
+        if (size_trame > 0) {
+                printf("DATA (%d bytes):\n", size_trame);
+                print_payload(trame, size_trame);
+        }
   return;
 }
 
