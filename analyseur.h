@@ -27,6 +27,31 @@ struct sniff_ethernet {
   u_short ether_type; /* IP? ARP? RARP? etc */
 };
 
+/*ARP header*/
+#define ARP_REQUEST 1   /* ARP Request             */ 
+#define ARP_REPLY 2     /* ARP Reply               */ 
+typedef struct sniff_arp { 
+    u_int16_t htype;    /* Hardware Type           */ 
+    u_int16_t ptype;    /* Protocol Type           */ 
+    u_char hlen;        /* Hardware Address Length */ 
+    u_char plen;        /* Protocol Address Length */ 
+    u_int16_t oper;     /* Operation Code          */ 
+    u_char sha[6];      /* Sender hardware address */ 
+    u_char spa[4];      /* Sender IP address       */ 
+    u_char tha[6];      /* Target hardware address */ 
+    u_char tpa[4];      /* Target IP address       */ 
+}arphdr_t; 
+
+/*DNS header*/
+typedef struct sniff_dns {
+        uint16_t xid;
+        uint16_t flags;
+        uint16_t qdcount;
+        uint16_t ancount;
+        uint16_t nscount;
+        uint16_t arcount;
+} dns_header_t;
+
 /* IP header */
 struct sniff_ip {
   u_char ip_vhl;		/* version << 4 | header length >> 2 */

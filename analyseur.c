@@ -176,7 +176,6 @@ void printPacket(const u_char * packet, int length)
 void printHexPacket(const u_char * trame, int length, int offset)
 {
   int i;
-  int gap;
   const u_char *tape;
 
   printf("%05d   ", offset);
@@ -204,10 +203,10 @@ void printHexPacket(const u_char * trame, int length, int offset)
     printf("\n");
 
     return;
-  }
+}
 
-  void print_payload(const u_char *trame, int len)
-  {
+void print_payload(const u_char *trame, int len)
+{
 
         int len_rem = len;
         int line_width = 16;                        /* number of bytes per line */
@@ -231,8 +230,8 @@ void printHexPacket(const u_char * trame, int length, int offset)
                         printHexPacket(ch, len_rem, offset);
 
                 }
-    return;
-  }
+  return;
+}
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
@@ -240,6 +239,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   const struct sniff_ip *ip;
   const struct sniff_tcp *tcp;
   const struct sniff_udp *udp;
+  const struct sniff_arp *arp;
   const u_char* trame;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
@@ -252,6 +252,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   tcp = (struct sniff_tcp*)(packet+size_ip+size_ethernet);
   size_tcp=TH_OFF(tcp)*4;
   udp = (struct sniff_udp*)(packet+SIZE_UDP+size_ethernet);
+  arp = (struct sniff_arp *)(packet+14);
 
   printf("TRACE: \n");
   printf("Destination host address : ");
