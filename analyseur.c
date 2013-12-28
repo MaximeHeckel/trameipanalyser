@@ -302,15 +302,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       break;
   }
 
-  trame = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
-
-        /* compute tcp payload (segment) size */
+        trame = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
         size_trame = ntohs(ip->ip_len) - (size_ip + size_tcp);
-
-        /*
-         * Print payload data; it might be binary, so don't just
-         * treat it as a string.
-         */
         if (size_trame > 0) {
                 printf("DATA (%d bytes):\n", size_trame);
                 print_payload(trame, size_trame);
