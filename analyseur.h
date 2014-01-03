@@ -15,6 +15,7 @@
 #include <netinet/ip.h>
 #include <net/ethernet.h>
 #include <unistd.h>
+#include <bootp.h>
 
 /* Ethernet addresses are 6 bytes */
 #define ETHER_ADDR_LEN  6
@@ -28,19 +29,19 @@ struct sniff_ethernet {
 };
 
 /*ARP header*/
-#define ARP_REQUEST 1   /* ARP Request             */ 
-#define ARP_REPLY 2     /* ARP Reply               */ 
-typedef struct sniff_arp { 
-    u_int16_t htype;    /* Hardware Type           */ 
-    u_int16_t ptype;    /* Protocol Type           */ 
-    u_char hlen;        /* Hardware Address Length */ 
-    u_char plen;        /* Protocol Address Length */ 
-    u_int16_t oper;     /* Operation Code          */ 
-    u_char sha[6];      /* Sender hardware address */ 
-    u_char spa[4];      /* Sender IP address       */ 
-    u_char tha[6];      /* Target hardware address */ 
-    u_char tpa[4];      /* Target IP address       */ 
-}arphdr_t; 
+#define ARP_REQUEST 1   /* ARP Request             */
+#define ARP_REPLY 2     /* ARP Reply               */
+typedef struct sniff_arp {
+    u_int16_t htype;    /* Hardware Type           */
+    u_int16_t ptype;    /* Protocol Type           */
+    u_char hlen;        /* Hardware Address Length */
+    u_char plen;        /* Protocol Address Length */
+    u_int16_t oper;     /* Operation Code          */
+    u_char sha[6];      /* Sender hardware address */
+    u_char spa[4];      /* Sender IP address       */
+    u_char tha[6];      /* Target hardware address */
+    u_char tpa[4];      /* Target IP address       */
+}arphdr_t;
 
 /*DNS header*/
 typedef struct sniff_dns {
@@ -113,3 +114,4 @@ void printHexPacket(const u_char *trame, int length, int offset);
 void print_payload(const u_char *trame, int len);
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void openFile(char * name, FILE ** file);
+void printArp(struct sniff_arp arp);
