@@ -190,7 +190,6 @@ void printAscii(u_char *packet, int length){
             rank=0;
         }
         else if(packet[i] == '\r'){
-        //printf("%c", (packet[i]));
             rank=0;
         }
         else
@@ -209,7 +208,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   const struct sniff_tcp *tcp;
   const struct sniff_udp *udp;
   const struct sniff_arp *arp;
-  const struct bootp *bootp;
   u_char* trame;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
@@ -228,7 +226,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   printArp(*arp);
   printf("TRACE: \n");
   printEther(ethernet,*vFlag);
-  printUdp(udp,*vFlag);
 
   char *aux = inet_ntoa(ip->ip_src);
   char *ab = strcpy(malloc(strlen(aux)+1), aux);
@@ -243,12 +240,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   switch(ip->ip_p)
   {
     case IPPROTO_TCP:
-      printf("Protocol TCP\n");
-      printf("Source Port = %d\n" ,ntohs(tcp->th_sport));
-      printf("Destination Port = %d\n", ntohs(tcp->th_dport));
-      printf("Data Offset = %d\n", ntohs(tcp->th_offx2));
-      printf("Window = %d\n", ntohs(tcp->th_win));
-      printf("\n");
+      printTcp(tcp, *vFlag);
       break;
     case IPPROTO_UDP:
       printUdp(udp, *vFlag);
@@ -273,7 +265,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 
 void printEther(const struct sniff_ethernet* ethernet, int verbosite)
 {
-  printf("**********ETHERNET**********");
+  printf("**********ETHERNET**********\n");
   if(verbosite > 1)
   {
     printf("Destination host address : ");
@@ -298,10 +290,41 @@ void printEther(const struct sniff_ethernet* ethernet, int verbosite)
     }
   }
 }
+void printTcp(const struct sniff_tcp* tcp, int verbosite)
+{
+  printf("***********TCP*********\n");
+  printf("Source port: %u\n", ntohs(tcp->th_sport));
+  printf("Destination port: %u\n", ntohs(tcp->th_dport));
+  if(verbosite >=1)
+  {
+    printf("Flag:");
+        if(TH_URG != 0 )
+            printf("URGENT ");
+        if(TH_ACK != 0 )
+            printf("ACK ");
+        if(TH_PUSH != 0 )
+            printf("PUSH ");
+        if(TH_RST != 0 )
+            printf("RESET ");
+        if(TH_SYN != 0 )
+            printf("SYN ");
+        if( TH_FIN!= 0 )
+            printf("FINISH ");
+        printf("\n");
+        if(verbosite > 2)
+        {
+          printf("Data Offset:%d\n", ntohs(tcp->th_offx2));
+          printf("Window: %d\n", ntohs(tcp->th_win));
+          printf("Checksum: %d\n",ntohs(tcp->th_sum));
+          printf("Urgent Pointer: %d\n", ntohs(tcp->th_urp));
+          printf("\n");
+        }
 
+  }
+}
 void printUdp(const struct sniff_udp* udp, int verbosite)
 {
-  printf("**********UDP**********");
+  printf("**********UDP**********\n");
   printf("Source port: %u\n",ntohs(udp->uh_sport));
   printf("Destination port: %u\n", ntohs(udp->uh_dport));
   if(verbosite > 1)
@@ -311,6 +334,7 @@ void printUdp(const struct sniff_udp* udp, int verbosite)
     if(verbosite > 3)
     {
       printPacket((const u_char*) udp, ntohs(udp->uh_ulen));
+      printf("\n");
     }
   }
 }
@@ -523,4 +547,3 @@ void openFile(char * name, FILE ** file)
     }
 
 }
-
