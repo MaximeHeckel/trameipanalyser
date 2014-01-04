@@ -381,10 +381,10 @@ void printBootp(struct bootp* bp, int verbosite)
                 printf(":%02x",bp->bp_vend[j]);
              printf("\n");
              break;
-             /*case TAG_HOSTNAME:
+             case TAG_HOSTNAME:
              printf("Nom de la machine : ");
              printAscii((u_char *) &bp->bp_vend[i+2],bp->bp_vend[i+1]-1);
-             break;*/
+             break;
              case TAG_PARM_REQUEST:
              printf("Parametres demandees :\n");
              j =i+3;
