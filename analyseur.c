@@ -169,49 +169,22 @@ void printPacket(const u_char * packet, int length)
   int i = 0;
   for(i=0; i < length; i++)
   {
+    if(i%16==15)
+    {
+      printf("%02x\n",(packet[i]));
+    }
     printf("%x ", packet[i]);
   }
   printf("\n");
 }
-void printHexPacket(const u_char * trame, int length, int offset)
-{
-  int i;
-  const u_char *tape;
 
-  printf("%05d   ", offset);
-  tape = trame;
-  for(i = 0; i < length; i++) {
-    printf("%02x ", *tape);
-    tape++;
-    /* print extra space after 8th byte for visual aid */
-    if (i == 7)
-      printf(" ");
-  }
-  /* print space to handle line less than 8 bytes */
-  if (length < 8)
-    printf(" ");
-
-  /* ascii (if printable) */
-  tape = trame;
-  for(i = 0; i < length; i++) {
-    if (isprint(*tape))
-      printf("%c", *tape);
-    else
-      printf(".");
-    tape++;
-    }
-    printf("\n");
-
-    return;
-}
-
-void print_payload(const u_char *trame, int len)
+/*void printascii(const u_char *trame, int len)
 {
 
         int len_rem = len;
-        int line_width = 16;                        /* number of bytes per line */
+        int line_width = 16;
         int line_len;
-        int offset = 0;                                        /* zero-based offset counter */
+        int offset = 0;
         const u_char *ch = trame;
 
         if (len <= 0)
@@ -231,7 +204,30 @@ void print_payload(const u_char *trame, int len)
 
                 }
   return;
-}
+}*/
+void printAscii(u_char *packet, int length){
+    int i;
+    int rank =0;
+    for(i=0;i< length;i++, rank++){
+        if(isprint(packet[i])){        
+            printf("%c", (packet[i]));
+        }
+        else if(packet[i] == '\n'){        
+            printf("%c", (packet[i]));
+            rank=0;
+        }
+        else if(packet[i] == '\r'){        
+        //printf("%c", (packet[i]));
+            rank=0;
+        }
+        else
+            printf(".");
+        if(rank%64==63)
+            printf("\n");
+    }
+    printf("\n");
+
+};
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
@@ -240,7 +236,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   const struct sniff_tcp *tcp;
   const struct sniff_udp *udp;
   const struct sniff_arp *arp;
-  const u_char* trame;
+  u_char* trame;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
   int size_tcp;
@@ -308,7 +304,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
         size_trame = ntohs(ip->ip_len) - (size_ip + size_tcp);
         if (size_trame > 0) {
                 printf("DATA (%d bytes):\n", size_trame);
-                print_payload(trame, size_trame);
+                printAscii(trame, size_trame);
         }
   return;
 }
@@ -328,7 +324,7 @@ void printBootp(struct bootp* bp, int verbosite)
    printf("(REQUETE)\n");
    if(bp->bp_op == BOOTREPLY)
          printf("(REPONSE)\n");
-  if(verbosite>3){
+   if(verbosite>3){
      printf("Type d'addresse hardware : %d\n",bp->bp_htype);
      printf("Taille d'addresse hardware : %d\n",bp->bp_hlen);
      printf("Nombre de sauts : %d\n",bp->bp_hops);
@@ -385,10 +381,10 @@ void printBootp(struct bootp* bp, int verbosite)
                 printf(":%02x",bp->bp_vend[j]);
              printf("\n");
              break;
-             case TAG_HOSTNAME:
+             /*case TAG_HOSTNAME:
              printf("Nom de la machine : ");
              printAscii((u_char *) &bp->bp_vend[i+2],bp->bp_vend[i+1]-1);
-             break;
+             break;*/
              case TAG_PARM_REQUEST:
              printf("Parametres demandees :\n");
              j =i+3;
@@ -508,13 +504,13 @@ void printBootp(struct bootp* bp, int verbosite)
                 break;
                 default:
                 printf("Option non prise en charge : %d\n",bp->bp_vend[i]);
-                  break;
+                break;
              }
               i+=2+bp->bp_vend[i+1];
          }
       }
         if(verbosite>2)
-        printDump((u_char *) bp, sizeof(struct bootp));
+        printPacket((u_char *) bp, sizeof(struct bootp));
 
 };
 
