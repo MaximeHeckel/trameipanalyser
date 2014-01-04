@@ -8,33 +8,15 @@ int main(int argc, char ** argv)
   char *oFlag = NULL;
   char *fFlag = NULL;
   int numberpacket = 10;
-
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
-  //printf("After getOptions\n");
-  //int strcmpRes = strcmp(iFlag, "(null)");
-  //printf("After strcmp\n");
-  //printf("Strcmp of iFlag:%d",strcmpRes);
-
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
-
   struct pcap_pkthdr header;/* The header that pcap gives us */
   const u_char *packet;/* The actual packet */
-
-  /*if(!strcmp(iFlag,"(null)"))
-  {*/
-    openDevice(&iFlag, &handle, &errbuf);
-    sniffPacket(&handle, &header, &packet);
-    printPacket(packet, header.len);
-    pcap_loop(handle, numberpacket, got_packet, NULL);
-  /*}
-  else
-  {
-    FILE * file = NULL;
-    openFile(oFlag, &file);
-  }*/
-
-  /* And close the session */
+  openDevice(&iFlag, &handle, &errbuf);
+  sniffPacket(&handle, &header, &packet);
+  printPacket(packet, header.len);
+  pcap_loop(handle, numberpacket, got_packet, NULL);
   pcap_close(handle);
   return 0;
 }
