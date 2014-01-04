@@ -295,62 +295,67 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 
 void printEther(const struct sniff_ethernet* ethernet, int verbosite)
 {
-  printf("Destination host address : ");
-  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
-  ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
-  ((unsigned)ethernet->ether_dhost[1]),
-  ((unsigned)ethernet->ether_dhost[2]),
-  ((unsigned)ethernet->ether_dhost[3]),
-  ((unsigned)ethernet->ether_dhost[4]),
-  ((unsigned)ethernet->ether_dhost[5]));
-  printf("Source host address : ");
-  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
-  ((unsigned)ethernet->ether_shost[0]),
-  ((unsigned)ethernet->ether_shost[1]),
-  ((unsigned)ethernet->ether_shost[2]),
-  ((unsigned)ethernet->ether_shost[3]),
-  ((unsigned)ethernet->ether_shost[4]),
-  ((unsigned)ethernet->ether_shost[5]));
-
-  printf("Ether_type : [%i]\n", ethernet->ether_type);
+  if(verbosite > 1)
+  {
+    printf("Destination host address : ");
+    printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+    ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
+    ((unsigned)ethernet->ether_dhost[1]),
+    ((unsigned)ethernet->ether_dhost[2]),
+    ((unsigned)ethernet->ether_dhost[3]),
+    ((unsigned)ethernet->ether_dhost[4]),
+    ((unsigned)ethernet->ether_dhost[5]));
+    printf("Source host address : ");
+    printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+    ((unsigned)ethernet->ether_shost[0]),
+    ((unsigned)ethernet->ether_shost[1]),
+    ((unsigned)ethernet->ether_shost[2]),
+    ((unsigned)ethernet->ether_shost[3]),
+    ((unsigned)ethernet->ether_shost[4]),
+    ((unsigned)ethernet->ether_shost[5]));
+    if(verbosite > 2)
+    {
+      printf("Ether_type : [%i]\n", ethernet->ether_type);
+    }
+  }
 }
 
 void printArp(struct sniff_arp arp)
 {
-  printf("**********En-tete ARP**********\n");
-  printf("Type hardware : %u (%s) \n", ntohs(arp.htype),(ntohs(arp.htype) == 1) ? "Ethernet" : "Inconnu");
-  printf("Type protocole : %u (%s) \n", arp.ptype,(ntohs(arp.ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
+  printf("**********ARP**********\n");
+  printf("Hardware type : %u (%s) \n", ntohs(arp.htype),(ntohs(arp.htype) == 1) ? "Ethernet" : "Inconnu");
+  printf("Protocol : %u (%s) \n", arp.ptype,(ntohs(arp.ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
 }
 
 void printBootp(struct bootp* bp, int verbosite)
 {
-   printf("**********En-tete BOOTP**********\n");
+   printf("**********BOOTP**********\n");
    printf("Operation : %d ",bp->bp_op);
    if(bp->bp_op == BOOTREQUEST)
-   printf("(REQUETE)\n");
+   printf("(REQUEST)\n");
    if(bp->bp_op == BOOTREPLY)
-         printf("(REPONSE)\n");
+         printf("(RESPONSE)\n");
    if(verbosite>3){
-     printf("Type d'addresse hardware : %d\n",bp->bp_htype);
-     printf("Taille d'addresse hardware : %d\n",bp->bp_hlen);
-     printf("Nombre de sauts : %d\n",bp->bp_hops);
-     printf("ID de transaction : %u\n",ntohl(bp->bp_xid));
-     printf("Secondes depuis le boot : %d\n",ntohs(bp->bp_secs));
+     printf("Hardware address type: %d\n",bp->bp_htype);
+     printf("Hardware address length: %d\n",bp->bp_hlen);
+     printf("Jump number : %d\n",bp->bp_hops);
+     printf("Transaction ID: %u\n",ntohl(bp->bp_xid));
+     printf("Boot time in sec : %d\n",ntohs(bp->bp_secs));
      }
-     printf("IP Client : %s\n", inet_ntoa(bp->bp_ciaddr));
-     printf("Your IP : %s\n", inet_ntoa(bp->bp_yiaddr));
-     printf("IP Server : %s\n", inet_ntoa(bp->bp_siaddr));
-     printf("IP de la passerelle : %s\n", inet_ntoa(bp->bp_giaddr));
+     printf("Client IP: %s\n", inet_ntoa(bp->bp_ciaddr));
+     printf("Your IP: %s\n", inet_ntoa(bp->bp_yiaddr));
+     printf("Server IP: %s\n", inet_ntoa(bp->bp_siaddr));
+     printf("Passerelle IP: %s\n", inet_ntoa(bp->bp_giaddr));
      int i;
-     printf("Adresse MAC client : %02x",bp->bp_chaddr[0]);
+     printf("MAC client address: %02x",bp->bp_chaddr[0]);
      for(i=1;i<bp->bp_hlen;i++)
          printf(":%02x",bp->bp_chaddr[i]);
      printf("\n");
-     printf("Nom du serveur : %s\n", bp->bp_sname);
+     printf("Server name: %s\n", bp->bp_sname);
      if(verbosite>3)
-         printf("Fichier de boot : %s\n", bp->bp_file);
+         printf("Boot file: %s\n", bp->bp_file);
      if( bp->bp_vend[0] == 99 && bp->bp_vend[1] == 130 && bp->bp_vend[2] == 83 && bp->bp_vend[3] == 99 ){
-         printf("Presence du MAGIC COOKIE\n");
+         printf("MAGIC COOKIE DETECTED\n");
      printf("Options : ");
      i = 4;
      while(bp->bp_vend[i]!=0xFF){
@@ -380,19 +385,19 @@ void printBootp(struct bootp* bp, int verbosite)
              }
              break;
              case TAG_CLIENT_ID:
-             printf("Type materiel : %d (%s)\n",bp->bp_vend[i+2],(bp->bp_vend[i+2] == 1) ? "Ethernet" : "Inconnu");
+             printf("Hardware type : %d (%s)\n",bp->bp_vend[i+2],(bp->bp_vend[i+2] == 1) ? "Ethernet" : "Inconnu");
              int j =i+3;
-             printf("Adresse ethernet de l'equipement : %02x",bp->bp_vend[j]);
+             printf("Hardware ethernet address: %02x",bp->bp_vend[j]);
              for(j++;j<bp->bp_vend[i+1]+i+2;j++)
                 printf(":%02x",bp->bp_vend[j]);
              printf("\n");
              break;
              case TAG_HOSTNAME:
-             printf("Nom de la machine : ");
+             printf("Device name: ");
              printAscii((u_char *) &bp->bp_vend[i+2],bp->bp_vend[i+1]-1);
              break;
              case TAG_PARM_REQUEST:
-             printf("Parametres demandees :\n");
+             printf("Parameters:\n");
              j =i+3;
              for(;j<bp->bp_vend[i+1]+i+2;j++)
                  switch(bp->bp_vend[j]){
@@ -443,32 +448,32 @@ void printBootp(struct bootp* bp, int verbosite)
                  break;
                  case TAG_GATEWAY:
                  j =i+3;
-                 printf("Adresse IP du routeur : %d",bp->bp_vend[j]);
+                 printf("Router address: %d",bp->bp_vend[j]);
                  for(j++;j<bp->bp_vend[i+1]+i+3;j++)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
                  break;
                  case TAG_DOMAIN_SERVER:
                  j =i+3;
-                 printf("Adresse IP du server DNS : %d",bp->bp_vend[j]);
+                 printf("DNS Server IP address: %d",bp->bp_vend[j]);
                  for(j++;j<bp->bp_vend[i+1]+i+3;j++)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
                  break;
                  case TAG_DOMAINNAME:
-                 printf("Nom de domaine : ");
+                 printf("Domain name: ");
                  printAscii((u_char *) &bp->bp_vend[i+2],bp->bp_vend[i+1]-1);
                  break;
                  case TAG_BROAD_ADDR:
                  j =i+3;
-                 printf("Adresse IP de broadcast : %d",bp->bp_vend[j]);
+                 printf("Broadcast IP address: %d",bp->bp_vend[j]);
                  for(j++;j<bp->bp_vend[i+1]+i+3;j++)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
                  break;
                  case TAG_SUBNET_MASK:
                  j =i+3;
-                 printf("Masque de sous-reseau : %d",bp->bp_vend[j]);
+                 printf("Subnet mask: %d",bp->bp_vend[j]);
                  for(j++;j<bp->bp_vend[i+1]+i+3;j++)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
@@ -479,7 +484,7 @@ void printBootp(struct bootp* bp, int verbosite)
                  break;*/
                  case TAG_NETBIOS_NS:
                  j =i+3;
-                 printf("Adresse IP serveur de nom: %d",bp->bp_vend[j]);
+                 printf("Name server IP address: %d",bp->bp_vend[j]);
                  for(j++;j<bp->bp_vend[i+1]+i+3;j++)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
@@ -493,23 +498,23 @@ void printBootp(struct bootp* bp, int verbosite)
                  break;*/
                  case TAG_REQUESTED_IP:
                  j =i+3;
-                 printf("Adresse IP demandee : %d",bp->bp_vend[j]);
+                 printf("Asked IP address: %d",bp->bp_vend[j]);
                  for(j++;j<bp->bp_vend[i+1]+i+3;j++)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
                  break;
                  case TAG_IP_LEASE:
-                 printf("Temps de bail : %u s\n",bp->bp_vend[i+2]*256*256*256+bp->bp_vend[i+3]*256*256+bp->bp_vend[i+4]*256+bp->bp_vend[i+5]);
+                 printf("Lease time: %u s\n",bp->bp_vend[i+2]*256*256*256+bp->bp_vend[i+3]*256*256+bp->bp_vend[i+4]*256+bp->bp_vend[i+5]);
                  break;
                  case TAG_SERVER_ID:
                  j =i+3;
-                 printf("Adresse IP server : %d",bp->bp_vend[j]);
+                 printf("Server IP address: %d",bp->bp_vend[j]);
                  for(j++;j<bp->bp_vend[i+1]+i+3;j++)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
                 break;
                 default:
-                printf("Option non prise en charge : %d\n",bp->bp_vend[i]);
+                printf("Not an option: %d\n",bp->bp_vend[i]);
                 break;
              }
               i+=2+bp->bp_vend[i+1];
