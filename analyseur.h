@@ -115,3 +115,4 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 void openFile(char * name, FILE ** file);
 void printEther(const struct sniff_ethernet* ethernet, int verbosite);
 void printArp(struct sniff_arp arp);
+void printBootp(const struct bootp* bp, int verbosite);

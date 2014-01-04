@@ -236,6 +236,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   const struct sniff_tcp *tcp;
   const struct sniff_udp *udp;
   const struct sniff_arp *arp;
+  const struct bootp *bootp;
   u_char* trame;
   int size_ethernet = sizeof(struct sniff_ethernet);
   int size_ip;
@@ -250,6 +251,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   size_tcp=TH_OFF(tcp)*4;
   udp = (struct sniff_udp*)(packet+SIZE_UDP+size_ethernet);
   arp = (struct sniff_arp *)(packet+14);
+  bootp = (struct bootp *)(packet);
   printArp(*arp);
   printf("TRACE: \n");
   printEther(ethernet,*vFlag);
@@ -290,11 +292,13 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
                 printf("DATA (%d bytes):\n", size_trame);
                 printAscii(trame, size_trame);
         }
+  printBootp(bootp, *vFlag);
   return;
 }
 
 void printEther(const struct sniff_ethernet* ethernet, int verbosite)
 {
+  printf("**********ETHERNET**********");
   if(verbosite > 1)
   {
     printf("Destination host address : ");
@@ -327,7 +331,7 @@ void printArp(struct sniff_arp arp)
   printf("Protocol : %u (%s) \n", arp.ptype,(ntohs(arp.ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
 }
 
-void printBootp(struct bootp* bp, int verbosite)
+void printBootp(const struct bootp* bp, int verbosite)
 {
    printf("**********BOOTP**********\n");
    printf("Operation : %d ",bp->bp_op);
