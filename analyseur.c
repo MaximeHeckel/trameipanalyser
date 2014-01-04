@@ -178,45 +178,18 @@ void printPacket(const u_char * packet, int length)
   printf("\n");
 }
 
-/*void printascii(const u_char *trame, int len)
-{
-
-        int len_rem = len;
-        int line_width = 16;
-        int line_len;
-        int offset = 0;
-        const u_char *ch = trame;
-
-        if (len <= 0)
-                return;
-
-        if (len <= line_width) {
-                printHexPacket(ch, len, offset);
-                return;
-        }
-                printHexPacket(ch, line_len, offset);
-                len_rem = len_rem - line_len;
-                ch = ch + line_len;
-                offset = offset + line_width;
-
-                if (len_rem <= line_width) {
-                        printHexPacket(ch, len_rem, offset);
-
-                }
-  return;
-}*/
 void printAscii(u_char *packet, int length){
     int i;
     int rank =0;
     for(i=0;i< length;i++, rank++){
-        if(isprint(packet[i])){        
+        if(isprint(packet[i])){
             printf("%c", (packet[i]));
         }
-        else if(packet[i] == '\n'){        
+        else if(packet[i] == '\n'){
             printf("%c", (packet[i]));
             rank=0;
         }
-        else if(packet[i] == '\r'){        
+        else if(packet[i] == '\r'){
         //printf("%c", (packet[i]));
             rank=0;
         }
@@ -249,9 +222,9 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   size_ip=IP_HL(ip)*4;
   tcp = (struct sniff_tcp*)(packet+size_ip+size_ethernet);
   size_tcp=TH_OFF(tcp)*4;
-  udp = (struct sniff_udp*)(packet+SIZE_UDP+size_ethernet);
+  udp = (struct sniff_udp*)(packet + sizeof(struct ether_header) + ip->ip_len*4);
   arp = (struct sniff_arp *)(packet+14);
-  bootp = (struct bootp *)(packet);
+
   printArp(*arp);
   printf("TRACE: \n");
   printEther(ethernet,*vFlag);
@@ -278,9 +251,11 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       printf("\n");
       break;
     case IPPROTO_UDP:
-      printf("Protocol UDP\n");
-      printf("Source Port = %d\nDestination Port = %d\n", ntohs(udp->uh_sport), ntohs(udp->uh_dport));
-      printf("\n");
+      printUdp(udp, *vFlag);
+      if((ntohs(udp->uh_sport)==IPPORT_BOOTPS && ntohs(udp->uh_dport)==IPPORT_BOOTPC) ||
+                (ntohs(udp->uh_dport)==IPPORT_BOOTPS && ntohs(udp->uh_sport)==IPPORT_BOOTPC)){
+                printBootp((struct bootp*) (packet + sizeof(struct ether_header) + ip->ip_len*4+8),*vFlag);
+      }
       break;
     default:
       printf("Unknown Protocol\n");
@@ -293,7 +268,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
                 printf("DATA (%d bytes):\n", size_trame);
                 printAscii(trame, size_trame);
         }
-  printBootp(bootp, *vFlag);
   return;
 }
 
@@ -324,6 +298,7 @@ void printEther(const struct sniff_ethernet* ethernet, int verbosite)
     }
   }
 }
+
 void printUdp(const struct sniff_udp* udp, int verbosite)
 {
   printf("**********UDP**********");
@@ -339,6 +314,7 @@ void printUdp(const struct sniff_udp* udp, int verbosite)
     }
   }
 }
+
 void printArp(struct sniff_arp arp)
 {
   printf("**********ARP**********\n");
