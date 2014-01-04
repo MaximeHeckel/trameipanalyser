@@ -114,5 +114,6 @@ void print_payload(const u_char *trame, int len);
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void openFile(char * name, FILE ** file);
 void printEther(const struct sniff_ethernet* ethernet, int verbosite);
+void printUdp(const struct sniff_udp* udp, int verbosite);
 void printArp(struct sniff_arp arp);
 void printBootp(const struct bootp* bp, int verbosite);

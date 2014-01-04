@@ -255,6 +255,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   printArp(*arp);
   printf("TRACE: \n");
   printEther(ethernet,*vFlag);
+  printUdp(udp,*vFlag);
 
   char *aux = inet_ntoa(ip->ip_src);
   char *ab = strcpy(malloc(strlen(aux)+1), aux);
@@ -323,7 +324,21 @@ void printEther(const struct sniff_ethernet* ethernet, int verbosite)
     }
   }
 }
-
+void printUdp(const struct sniff_udp* udp, int verbosite)
+{
+  printf("**********UDP**********");
+  printf("Source port: %u\n",ntohs(udp->uh_sport));
+  printf("Destination port: %u\n", ntohs(udp->uh_dport));
+  if(verbosite > 1)
+  {
+    printf("Header size: %d\n", ntohs(udp->uh_ulen));
+    printf("Checksum: %d\n", ntohs(udp->uh_sum));
+    if(verbosite > 3)
+    {
+      printPacket((const u_char*) udp, ntohs(udp->uh_ulen));
+    }
+  }
+}
 void printArp(struct sniff_arp arp)
 {
   printf("**********ARP**********\n");
@@ -482,10 +497,6 @@ void printBootp(const struct bootp* bp, int verbosite)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
                  break;
-                 /*case TAG_TIME_OFFSET:
-                 printf("TIME_OFFSET \n");//Non capturer
-                 printf("Decalage : %u s\n",bp->bp_vend[i+2]*256*256*256+bp->bp_vend[i+3]*256*256+bp->bp_vend[i+4]*256+bp->bp_vend[i+5]);
-                 break;*/
                  case TAG_NETBIOS_NS:
                  j =i+3;
                  printf("Name server IP address: %d",bp->bp_vend[j]);
@@ -493,13 +504,6 @@ void printBootp(const struct bootp* bp, int verbosite)
                      printf(".%d",bp->bp_vend[j]);
                  printf("\n");
                  break;
-                 /*case TAG_NETBIOS_SCOPE://Non capturer
-                 j =i+3;
-                 printf("NETBIOS_OVER_TCP/IP_SCOPE : %d",bp->bp_vend[j]);
-                 for(j++;j<bp->bp_vend[i+1]+i+3;j++)
-                     printf(".%d",bp->bp_vend[j]);
-                 printf("\n");
-                 break;*/
                  case TAG_REQUESTED_IP:
                  j =i+3;
                  printf("Asked IP address: %d",bp->bp_vend[j]);
