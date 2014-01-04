@@ -241,6 +241,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   int size_ip;
   int size_tcp;
   int size_trame;
+  int *vFlag = (int *) args;
 
   ethernet = (struct sniff_ethernet*)(packet);
   ip = (struct sniff_ip*)(packet+size_ethernet);
@@ -251,24 +252,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   arp = (struct sniff_arp *)(packet+14);
   printArp(*arp);
   printf("TRACE: \n");
-  printf("Destination host address : ");
-  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
-  ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
-  ((unsigned)ethernet->ether_dhost[1]),
-  ((unsigned)ethernet->ether_dhost[2]),
-  ((unsigned)ethernet->ether_dhost[3]),
-  ((unsigned)ethernet->ether_dhost[4]),
-  ((unsigned)ethernet->ether_dhost[5]));
-  printf("Source host address : ");
-  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
-  ((unsigned)ethernet->ether_shost[0]),
-  ((unsigned)ethernet->ether_shost[1]),
-  ((unsigned)ethernet->ether_shost[2]),
-  ((unsigned)ethernet->ether_shost[3]),
-  ((unsigned)ethernet->ether_shost[4]),
-  ((unsigned)ethernet->ether_shost[5]));
-
-  printf("Ether_type : [%i]\n", ethernet->ether_type);
+  printEther(ethernet,*vFlag);
 
   char *aux = inet_ntoa(ip->ip_src);
   char *ab = strcpy(malloc(strlen(aux)+1), aux);
@@ -307,6 +291,28 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
                 printAscii(trame, size_trame);
         }
   return;
+}
+
+void printEther(const struct sniff_ethernet* ethernet, int verbosite)
+{
+  printf("Destination host address : ");
+  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+  ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
+  ((unsigned)ethernet->ether_dhost[1]),
+  ((unsigned)ethernet->ether_dhost[2]),
+  ((unsigned)ethernet->ether_dhost[3]),
+  ((unsigned)ethernet->ether_dhost[4]),
+  ((unsigned)ethernet->ether_dhost[5]));
+  printf("Source host address : ");
+  printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+  ((unsigned)ethernet->ether_shost[0]),
+  ((unsigned)ethernet->ether_shost[1]),
+  ((unsigned)ethernet->ether_shost[2]),
+  ((unsigned)ethernet->ether_shost[3]),
+  ((unsigned)ethernet->ether_shost[4]),
+  ((unsigned)ethernet->ether_shost[5]));
+
+  printf("Ether_type : [%i]\n", ethernet->ether_type);
 }
 
 void printArp(struct sniff_arp arp)
