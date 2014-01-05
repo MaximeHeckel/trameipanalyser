@@ -6,8 +6,8 @@ int main(int argc, char ** argv)
   int vFlag = 0;
   char *iFlag = NULL;
   char *oFlag = NULL;
-  char *fFlag = NULL;
-  int numberpacket = 20;
+  char *fFlag = "port 80";
+  int numberpacket = 10;
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
   //printf("After getOptions\n");
@@ -24,7 +24,6 @@ int main(int argc, char ** argv)
   /*if(!strcmp(iFlag,"(null)"))
   {*/
     openDevice(&iFlag, &handle, &errbuf);
-    sniffPacket(&handle, &header, &packet);
     //printPacket(packet, header.len);
     pcap_loop(handle, numberpacket, got_packet, (u_char*) &vFlag);
   /*}
@@ -157,12 +156,6 @@ void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
    }
 }
 
-void sniffPacket(pcap_t ** handle,struct pcap_pkthdr *  header, const u_char **packet)
-{
-  *packet = pcap_next(*handle, header);
-  /* Print its length */
- printf("Jacked packet with length of [%d]\n", header->len);
-}
 
 void printPacket(const u_char * packet, int length)
 {
@@ -223,19 +216,10 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   udp = (struct sniff_udp*)(packet + sizeof(struct ether_header) + ip->ip_len*4);
   arp = (struct sniff_arp *)(packet+14);
 
+  printf("Caught packet with length of [%d]\n", header->len);
   printArp(*arp);
   printEther(ethernet,*vFlag);
-
-  char *aux = inet_ntoa(ip->ip_src);
-  char *ab = strcpy(malloc(strlen(aux)+1), aux);
-  char *bux = inet_ntoa(ip->ip_dst);
-  char *cd = strcpy(malloc(strlen(aux)+1), bux);
-  printf("Type de service : %d\n", ip->ip_tos);
-  printf("From IP: %s\nTo: %s\n",ab,cd);
-  printf("Version = %d\n", IP_V(ip));
-  printf("Length = %d\n", ip->ip_len);
-
-  //Switch sur type protocol
+  printIP(ip, *vFlag);
   switch(ip->ip_p)
   {
     case IPPROTO_TCP:
@@ -253,13 +237,42 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       break;
   }
 
-        trame = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
-        size_trame = ntohs(ip->ip_len) - (size_ip + size_tcp);
-        if (size_trame > 0) {
-                printf("DATA (%d bytes):\n", size_trame);
-                printAscii(trame, size_trame);
-        }
+  trame = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
+  size_trame = ntohs(ip->ip_len) - (size_ip + size_tcp);
+  if (size_trame > 0)
+  {
+    printf("DATA (%d bytes):\n", size_trame);
+    printAscii(trame, size_trame);
+  }
+  printf("\n");
+  printf("\n");
+  printf("\n");
   return;
+}
+
+void printIP(const struct sniff_ip* ip, int verbosite)
+{
+  char *aux = inet_ntoa(ip->ip_src);
+  char *ab = strcpy(malloc(strlen(aux)+1), aux);
+  char *bux = inet_ntoa(ip->ip_dst);
+  char *cd = strcpy(malloc(strlen(aux)+1), bux);
+  printf("**********IP**********\n");
+  printf("From IP: %s\nTo: %s\n",ab,cd);
+  if(verbosite>1)
+  {
+    printf("Version: %d\n", IP_V(ip));
+    printf("Length: %d\n", ip->ip_len);
+    printf("Type de service : %d\n", ip->ip_tos);
+    printf("Identification : %d\n", ip->ip_id);
+    if(verbosite>2)
+    {
+      printf("Fragment offset: %d\n", ip->ip_off);
+      printf("Time to live: %d\n", ip->ip_ttl);
+      printf("Checksum: %d\n", ip->ip_sum);
+      printPacket((u_char *) ip, sizeof(struct ip));
+    }
+  }
+  printf("\n");
 }
 
 void printEther(const struct sniff_ethernet* ethernet, int verbosite)
@@ -288,38 +301,49 @@ void printEther(const struct sniff_ethernet* ethernet, int verbosite)
       printf("Ether_type : [%i]\n", ethernet->ether_type);
     }
   }
+  printf("\n");
 }
 void printTcp(const struct sniff_tcp* tcp, int verbosite)
 {
   printf("***********TCP*********\n");
   printf("Source port: %u\n", ntohs(tcp->th_sport));
   printf("Destination port: %u\n", ntohs(tcp->th_dport));
-  if(verbosite >=1)
+  if(verbosite ==1)
   {
     printf("Flag:");
-        if(TH_URG != 0 )
-            printf("URGENT ");
-        if(TH_ACK != 0 )
-            printf("ACK ");
-        if(TH_PUSH != 0 )
-            printf("PUSH ");
-        if(TH_RST != 0 )
-            printf("RESET ");
-        if(TH_SYN != 0 )
-            printf("SYN ");
-        if( TH_FIN!= 0 )
-            printf("FINISH ");
-        printf("\n");
-        if(verbosite > 2)
-        {
-          printf("Data Offset:%d\n", ntohs(tcp->th_offx2));
-          printf("Window: %d\n", ntohs(tcp->th_win));
-          printf("Checksum: %d\n",ntohs(tcp->th_sum));
-          printf("Urgent Pointer: %d\n", ntohs(tcp->th_urp));
-          printf("\n");
-        }
+    if(TH_URG != 0 )
+      printf("URGENT ");
+    if(TH_ACK != 0 )
+      printf("ACK ");
+    if(TH_PUSH != 0 )
+      printf("PUSH ");
+    if(TH_RST != 0 )
+      printf("RESET ");
+    if(TH_SYN != 0 )
+      printf("SYN ");
+    if( TH_FIN!= 0 )
+      printf("FINISH ");
+    printf("\n");
+    }
+    else
+    {
+      printf("Flags URGENT : %d\n",TH_URG);
+      printf("Flags ACK : %d\n",TH_ACK);
+      printf("Flags PUSH : %d\n",TH_PUSH);
+      printf("Flags RESET : %d\n",TH_PUSH);
+      printf("Flags SYN : %d\n",TH_SYN);
+      printf("Flags FINISH : %d\n",TH_FIN);
+    }
+    if(verbosite > 2)
+    {
+      printf("Data Offset:%d\n", ntohs(tcp->th_offx2));
+      printf("Window: %d\n", ntohs(tcp->th_win));
+      printf("Checksum: %d\n",ntohs(tcp->th_sum));
+      printf("Urgent Pointer: %d\n", ntohs(tcp->th_urp));
+      printf("\n");
+    }
 
-  }
+  printf("\n");
 }
 void printUdp(const struct sniff_udp* udp, int verbosite)
 {
@@ -330,12 +354,13 @@ void printUdp(const struct sniff_udp* udp, int verbosite)
   {
     printf("Header size: %d\n", ntohs(udp->uh_ulen));
     printf("Checksum: %d\n", ntohs(udp->uh_sum));
-    if(verbosite > 3)
+    if(verbosite > 2)
     {
       printPacket((const u_char*) udp, ntohs(udp->uh_ulen));
       printf("\n");
     }
   }
+  printf("\n");
 }
 
 void printArp(struct sniff_arp arp)
@@ -344,6 +369,7 @@ void printArp(struct sniff_arp arp)
   printf("Hardware type : %u (%s) \n", ntohs(arp.htype),(ntohs(arp.htype) == 1) ? "Ethernet" : "Inconnu");
   printf("Protocol : %u (%s) \n", arp.ptype,(ntohs(arp.ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
   printf("Operation : %u (%s) \n", ntohs(arp.oper), (ntohs(arp.oper) == ARP_REQUEST)? "REQUEST" : "REPLY");
+  printf("\n");
 
 }
 
@@ -531,6 +557,7 @@ void printBootp(const struct bootp* bp, int verbosite)
       }
         if(verbosite>2)
         printPacket((u_char *) bp, sizeof(struct bootp));
+        printf("\n");
 
 };
 
