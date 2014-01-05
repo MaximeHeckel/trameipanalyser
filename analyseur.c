@@ -7,16 +7,34 @@ int main(int argc, char ** argv)
   char *iFlag = NULL;
   char *oFlag = NULL;
   char *fFlag = NULL;
-  int numberpacket = 10;
+  int numberpacket = 20;
+
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
+  //printf("After getOptions\n");
+  //int strcmpRes = strcmp(iFlag, "(null)");
+  //printf("After strcmp\n");
+  //printf("Strcmp of iFlag:%d",strcmpRes);
+
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
+
   struct pcap_pkthdr header;/* The header that pcap gives us */
   const u_char *packet;/* The actual packet */
-  openDevice(&iFlag, &handle, &errbuf);
-  sniffPacket(&handle, &header, &packet);
-  printPacket(packet, header.len);
-  pcap_loop(handle, numberpacket, got_packet, NULL);
+
+  /*if(!strcmp(iFlag,"(null)"))
+  {*/
+    openDevice(&iFlag, &handle, &errbuf);
+    sniffPacket(&handle, &header, &packet);
+    //printPacket(packet, header.len);
+    pcap_loop(handle, numberpacket, got_packet, (u_char*) &vFlag);
+  /*}
+  else
+  {
+    FILE * file = NULL;
+    openFile(oFlag, &file);
+  }*/
+
+  /* And close the session */
   pcap_close(handle);
   return 0;
 }
@@ -206,7 +224,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   arp = (struct sniff_arp *)(packet+14);
 
   printArp(*arp);
-  printf("TRACE: \n");
   printEther(ethernet,*vFlag);
 
   char *aux = inet_ntoa(ip->ip_src);
@@ -215,7 +232,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   char *cd = strcpy(malloc(strlen(aux)+1), bux);
   printf("Type de service : %d\n", ip->ip_tos);
   printf("From IP: %s\nTo: %s\n",ab,cd);
-  printf("Version = %d\n", ip->ip_vhl);
+  printf("Version = %d\n", IP_V(ip));
   printf("Length = %d\n", ip->ip_len);
 
   //Switch sur type protocol
@@ -252,7 +269,7 @@ void printEther(const struct sniff_ethernet* ethernet, int verbosite)
   {
     printf("Destination host address : ");
     printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
-    ((unsigned)ethernet->ether_dhost[0]),//ntohs sur la globalité
+    ((unsigned)ethernet->ether_dhost[0]),
     ((unsigned)ethernet->ether_dhost[1]),
     ((unsigned)ethernet->ether_dhost[2]),
     ((unsigned)ethernet->ether_dhost[3]),
@@ -326,6 +343,8 @@ void printArp(struct sniff_arp arp)
   printf("**********ARP**********\n");
   printf("Hardware type : %u (%s) \n", ntohs(arp.htype),(ntohs(arp.htype) == 1) ? "Ethernet" : "Inconnu");
   printf("Protocol : %u (%s) \n", arp.ptype,(ntohs(arp.ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
+  printf("Operation : %u (%s) \n", ntohs(arp.oper), (ntohs(arp.oper) == ARP_REQUEST)? "REQUEST" : "REPLY");
+
 }
 
 void printBootp(const struct bootp* bp, int verbosite)
