@@ -17,10 +17,6 @@ int main(int argc, char ** argv)
 
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
-
-  struct pcap_pkthdr header;/* The header that pcap gives us */
-  const u_char *packet;/* The actual packet */
-
   /*if(!strcmp(iFlag,"(null)"))
   {*/
     openDevice(&iFlag, &handle, &errbuf);
@@ -340,6 +336,7 @@ void printTcp(const struct sniff_tcp* tcp, int verbosite)
       printf("Window: %d\n", ntohs(tcp->th_win));
       printf("Checksum: %d\n",ntohs(tcp->th_sum));
       printf("Urgent Pointer: %d\n", ntohs(tcp->th_urp));
+      printPacket((const u_char*) tcp, TH_OFF(tcp)*4);
       printf("\n");
     }
 
