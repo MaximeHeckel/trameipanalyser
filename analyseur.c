@@ -10,20 +10,14 @@ int main(int argc, char ** argv)
   int numberpacket = 10;
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
-  //printf("After getOptions\n");
-  //int strcmpRes = strcmp(iFlag, "(null)");
-  //printf("After strcmp\n");
-  //printf("Strcmp of iFlag:%d",strcmpRes);
-
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
-  /*if(!strcmp(iFlag,"(null)"))
-  {*/
-    openDevice(&iFlag, &handle, &errbuf);
-    //printPacket(packet, header.len);
-    pcap_loop(handle, numberpacket, got_packet, (u_char*) &vFlag);
-  /*}
-  else
+  openDevice(&iFlag, &handle, &errbuf);
+
+  signal(SIGINT,ctrl_c);
+  pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
+
+  /*else
   {
     FILE * file = NULL;
     openFile(oFlag, &file);
@@ -106,6 +100,13 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
       exit(EXIT_FAILURE);
     }
     printf("End of getOptions\n");
+}
+
+pcap_t *handle;
+void ctrl_c(int n){
+    printf("\nCATCH PACKET END\n");
+    pcap_close(handle);
+    exit(0);
 }
 
 void printHelp(char ** argv)
