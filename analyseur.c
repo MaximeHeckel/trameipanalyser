@@ -210,10 +210,10 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   tcp = (struct sniff_tcp*)(packet+size_ip+size_ethernet);
   size_tcp=TH_OFF(tcp)*4;
   udp = (struct sniff_udp*)(packet + sizeof(struct ether_header) + ip->ip_len*4);
-  arp = (struct sniff_arp *)(packet+14);
+  arp = (struct sniff_arp*)(packet+14);
 
   printf("Caught packet with length of [%d]\n", header->len);
-  printArp(*arp);
+  printArp(arp, *vFlag);
   printEther(ethernet,*vFlag);
   printIP(ip, *vFlag);
   switch(ip->ip_p)
@@ -360,12 +360,23 @@ void printUdp(const struct sniff_udp* udp, int verbosite)
   printf("\n");
 }
 
-void printArp(struct sniff_arp arp)
+void printArp(const struct sniff_arp* arp, int verbosite)
 {
   printf("**********ARP**********\n");
-  printf("Hardware type : %u (%s) \n", ntohs(arp.htype),(ntohs(arp.htype) == 1) ? "Ethernet" : "Inconnu");
-  printf("Protocol : %u (%s) \n", arp.ptype,(ntohs(arp.ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
-  printf("Operation : %u (%s) \n", ntohs(arp.oper), (ntohs(arp.oper) == ARP_REQUEST)? "REQUEST" : "REPLY");
+  if(verbosite > 1)
+  {
+    printf("Hardware type : %u (%s) \n", ntohs(arp->htype),(ntohs(arp->htype) == 1) ? "Ethernet" : "Inconnu");
+    printf("Protocol : %u (%s) \n", arp->ptype,(ntohs(arp->ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
+    printf("Operation : %u (%s) \n", ntohs(arp->oper), (ntohs(arp->oper) == ARP_REQUEST)? "REQUEST" : "REPLY");
+    if(verbosite > 2)
+    {
+        printf("Source Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",(arp->sha[0]),(arp->sha[1]),(arp->sha[2]),(arp->sha[3]),(arp->sha[4]),(arp->sha[5]));
+        printf("Destination Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", (arp->tha[0]),(arp->tha[1]),(arp->tha[2]),(arp->tha[3]),(arp->tha[4]),(arp->tha[5]));
+
+        printf("Source IP address: %d.%d.%d.%d\n",(arp->spa[0]),(arp->spa[1]),(arp->spa[2]),(arp->spa[3]));
+        printf("Destination IP address: %d.%d.%d.%d\n",(arp->tpa[0]),(arp->tpa[1]),(arp->tpa[2]),(arp->tpa[3]));
+    }
+  }
   printf("\n");
 
 }

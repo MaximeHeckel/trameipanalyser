@@ -116,5 +116,5 @@ void printIP(const struct sniff_ip* ip, int verbosite);
 void openFile(char * name, FILE ** file);
 void printTcp(const struct sniff_tcp* tcp, int verbosite);
 void printUdp(const struct sniff_udp* udp, int verbosite);
-void printArp(struct sniff_arp arp);
+void printArp(const struct sniff_arp* arp, int verbosite);
 void printBootp(const struct bootp* bp, int verbosite);
