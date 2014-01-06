@@ -7,7 +7,6 @@ int main(int argc, char ** argv)
   char *iFlag = NULL;
   char *oFlag = NULL;
   char *fFlag = "port 80";
-  int numberpacket = 10;
 
   getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
@@ -210,7 +209,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   ip = (struct ip*)(packet+size_ethernet);
   size_ip=IP_HL(ip)*4;
   tcp = (struct tcphdr*)(packet+size_ip+size_ethernet);
-  size_tcp=TH_OFF(tcp)*4;
+  size_tcp=sizeof(struct tcphdr);
   udp = (struct udphdr*)(packet + sizeof(struct ether_header) + ip->ip_len*4);
   arp = (struct arphdr*)(packet+14);
 
@@ -351,8 +350,8 @@ void printUdp(const struct udphdr* udp, int verbosite)
   printf("Destination port: %u\n", ntohs(udp->dest));
   if(verbosite > 1)
   {
-    printf("Header size: %d\n", ntohs(udp->uh_ulen));
-    printf("Checksum: %d\n", ntohs(udp->uh_sum));
+    printf("Header size: %d\n", ntohs(udp->len));
+    printf("Checksum: %d\n", ntohs(udp->check));
     if(verbosite > 2)
     {
       printPacket((const u_char*) udp, ntohs(udp->uh_ulen));
