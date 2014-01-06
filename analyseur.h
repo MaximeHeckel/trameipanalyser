@@ -76,3 +76,4 @@ void printTcp(const struct tcphdr* tcp, int verbosite);
 void printUdp(const struct udphdr* udp, int verbosite);
 void printArp(struct arphdr* arp, int verbosite);
 void printBootp(const struct bootp* bp, int verbosite);
+void printDns(u_char *data, int verbosite, int type);

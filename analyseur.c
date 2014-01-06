@@ -228,6 +228,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
                 (ntohs(udp->dest)==IPPORT_BOOTPS && ntohs(udp->source)==IPPORT_BOOTPC)){
                 printBootp((struct bootp*) (packet + sizeof(struct ether_header) + ip->ip_len*4+8),*vFlag);
       }
+      else if(ntohs(udp->source)== 53 || ntohs(udp->dest)==53){
+                 printDns((u_char *)packet + sizeof(struct ether_header) + ip->ihl*4+8,*verbosite,1);
       break;
     default:
       printf("Unknown Protocol\n");
