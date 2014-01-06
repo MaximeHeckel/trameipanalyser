@@ -34,7 +34,33 @@
 #define TH_OFF(th)        (((th)->th_off & 0xf0) >> 4)
 
 #endif
+#define DNS_A 1
+#define DNS_NS 2
+#define DNS_CNAME 5
+#define DNS_SOA 6
+#define DNS_MX 15
+#define DNS_AAAA 28
 
+#define DNS_IN 1
+#define DNS_ANY 255
+
+struct dns_header{
+  unsigned short id;
+  unsigned short flags;
+  unsigned short qd;
+  unsigned short an;
+  unsigned short ns;
+  unsigned short ar;
+};
+
+struct dns_answer{
+  unsigned short name;
+  unsigned short type;
+  unsigned short classe;
+  unsigned short _ttl;
+  unsigned short ttl;
+  unsigned short length;
+};
 void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
 void checkIfSudo();
 void ctrl_c(int n);
