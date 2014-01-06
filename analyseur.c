@@ -325,20 +325,20 @@ void printTcp(const struct tcphdr* tcp, int verbosite)
     }
     else
     {
-      printf("Flags URGENT : %d\n",TH_URG);
-      printf("Flags ACK : %d\n",TH_ACK);
-      printf("Flags PUSH : %d\n",TH_PUSH);
-      printf("Flags RESET : %d\n",TH_PUSH);
-      printf("Flags SYN : %d\n",TH_SYN);
-      printf("Flags FINISH : %d\n",TH_FIN);
+      printf("Flags URGENT : %d\n",tcp->urg);
+      printf("Flags ACK : %d\n",tcp->ack);
+      printf("Flags PUSH : %d\n",tcp->psh);
+      printf("Flags RESET : %d\n",tcp->rst);
+      printf("Flags SYN : %d\n",tcp->syn);
+      printf("Flags FINISH : %d\n",tcp->fin);
     }
     if(verbosite > 2)
     {
-      printf("Data Offset:%d\n", ntohs(tcp->th_off));
-      printf("Window: %d\n", ntohs(tcp->th_win));
-      printf("Checksum: %d\n",ntohs(tcp->th_sum));
-      printf("Urgent Pointer: %d\n", ntohs(tcp->th_urp));
-      printPacket((const u_char*) tcp, TH_OFF(tcp)*4);
+      //printf("Data Offset:%d\n", ntohs(tcp->th_off));
+      printf("Window: %d\n", ntohs(tcp->window));
+      printf("Checksum: %d\n",ntohs(tcp->check));
+      printf("Urgent Pointer: %d\n", ntohs(tcp->urg_ptr));
+      printPacket((const u_char*) tcp, tcp->doff*4);
       printf("\n");
     }
 
