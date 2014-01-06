@@ -571,7 +571,75 @@ void printBootp(const struct bootp* bp, int verbosite)
         printf("\n");
 
 };
+void printDns(u_char *data, int verbosite, int type)
+{
+    struct dns_header *dns;
+    if(type==3)
+    {
+        printf("**********DNSUDP**********\n");
+        dns = (struct dns_header *)data+1;
+    }
+    else
+    {
+        printf("**********DNSTCP**********\n");
+        dns = (struct dns_header *)data;
+    }
+    printf("%s DNS \n",(dns->flags >> 15 )?"REPONSE":"REQUETE");
+    printf("Server Name Number: %d\n",htons(dns->ns));
+    printf("Additional Entry Number : %d\n",htons(dns->ar));
 
+    u_char *dns_data = data + sizeof(struct dns_header);
+    char buffer[256];
+    bzero(buffer,256);
+    int next_data = 0;
+    int offset = 0;
+    int i=0;
+    int j=0;
+    int nqd = htons(dns->qd);
+    while(nqd>0){
+        printf("REQUEST: ");
+        while(dns_data[i]!=0){
+            for(j=i+1;j<=i+dns_data[i];j++)
+                printf("%c",dns_data[j]);
+            printf(".");
+            i+=dns_data[i]+1;
+        }
+        printf("\n");
+        // next_data=dns_data[offset];
+        // memcpy(buffer,dns_data+offset+1,next_data);
+        // buffer[next_data]='\0';
+        // offset += (next_data+1);
+        // printf("Question : %s\n",buffer);
+        // printf("taille :%d\n", dns_data)
+        //offset++;
+        printf("Type : ");
+        switch(dns_data[i+2]){
+            case DNS_A:
+            printf("A ");
+            break;
+            case DNS_NS:
+            printf("NS ");
+            break;
+            case DNS_CNAME:
+            printf("CNAME ");
+            break;
+            case DNS_SOA:
+            printf("SOA ");
+            break;
+            case DNS_MX:
+            printf("MX ");
+            break;
+            case DNS_AAAA:
+            printf("AAAA ");
+            break;
+            default:
+            printf(" %02x ",dns_data[i+2]);
+            break;
+        }
+        printf("\n"); 
+        i+=5;
+        nqd--;       
+    }
 void openFile(char * name, FILE ** file)
 {
     *file = fopen(name, "r");
