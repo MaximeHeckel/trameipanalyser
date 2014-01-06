@@ -366,16 +366,17 @@ void printArp(struct arphdr* arp, int verbosite)
   printf("**********ARP**********\n");
   if(verbosite > 1)
   {
-    printf("Hardware type : %u (%s) \n", ntohs(arp->htype),(ntohs(arp->htype) == 1) ? "Ethernet" : "Inconnu");
-    printf("Protocol : %u (%s) \n", arp->ar_pro,(ntohs(arp->ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
-    printf("Operation : %u (%s) \n", ntohs(arp->oper), (ntohs(arp->oper) == ARP_REQUEST)? "REQUEST" : "REPLY");
+    printf("Hardware type : %u (%s) \n", ntohs(arp->ar_hrd),(ntohs(arp->ar_hrd) == 1) ? "Ethernet" : "Inconnu");
+    printf("Protocol : %u (%s) \n", arp->ar_pro,(ntohs(arp->ar_pro) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
+    printf("Operation : %u (%s) \n", ntohs(arp->ar_op), (ntohs(arp->ar_op) == ARP_REQUEST)? "REQUEST" : "REPLY");
     if(verbosite > 2)
     {
-        printf("Source Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",(arp->sha[0]),(arp->sha[1]),(arp->sha[2]),(arp->sha[3]),(arp->sha[4]),(arp->sha[5]));
-        printf("Destination Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", (arp->tha[0]),(arp->tha[1]),(arp->tha[2]),(arp->tha[3]),(arp->tha[4]),(arp->tha[5]));
+        u_char * data = (u_char *) arp + sizeof(struct arphdr);
+        printf("Source Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",(arp->data[0]),(arp->data[1]),(arp->data[2]),(arp->data[3]),(arp->data[4]),(arp->data[5]));
+        printf("Destination Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", (arp->data[0]),(arp->data[1]),(arp->data[2]),(arp->data[3]),(arp->data[4]),(arp->data[5]));
 
-        printf("Source IP address: %d.%d.%d.%d\n",(arp->spa[0]),(arp->spa[1]),(arp->spa[2]),(arp->spa[3]));
-        printf("Destination IP address: %d.%d.%d.%d\n",(arp->tpa[0]),(arp->tpa[1]),(arp->tpa[2]),(arp->tpa[3]));
+        printf("Source IP address: %d.%d.%d.%d\n",(arp->data[0]),(arp->data[1]),(arp->data[2]),(arp->data[3]));
+        printf("Destination IP address: %d.%d.%d.%d\n",(arp->data[0]),(arp->data[1]),(arp->data[2]),(arp->data[3]));
     }
   }
   printf("\n");
