@@ -198,7 +198,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   const struct ip *ip;
   const struct tcphdr *tcp;
   const struct udphdr *udp;
-  struct arp *arp;
+  struct arphdr *arp;
   u_char* trame;
   int size_ethernet = sizeof(struct ether_header);
   int size_ip;
@@ -212,7 +212,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   tcp = (struct tcphdr*)(packet+size_ip+size_ethernet);
   size_tcp=TH_OFF(tcp)*4;
   udp = (struct udphdr*)(packet + sizeof(struct ether_header) + ip->ip_len*4);
-  arp = (struct arp*)(packet+14);
+  arp = (struct arphdr*)(packet+14);
 
   printf("Caught packet with length of [%d]\n", header->len);
   printArp(arp, *vFlag);
