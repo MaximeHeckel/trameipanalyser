@@ -309,17 +309,17 @@ void printTcp(const struct tcphdr* tcp, int verbosite)
   if(verbosite ==1)
   {
     printf("Flag:");
-    if(TH_URG != 0 )
+    if(tcp->urg != 0 )
       printf("URGENT ");
-    if(TH_ACK != 0 )
+    if(tcp->ack != 0 )
       printf("ACK ");
-    if(TH_PUSH != 0 )
+    if(tcp->psh != 0 )
       printf("PUSH ");
-    if(TH_RST != 0 )
+    if(tcp->rst != 0 )
       printf("RESET ");
-    if(TH_SYN != 0 )
+    if(tcp->syn != 0 )
       printf("SYN ");
-    if( TH_FIN!= 0 )
+    if(tcp->fin != 0 )
       printf("FINISH ");
     printf("\n");
     }
