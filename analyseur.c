@@ -103,7 +103,8 @@ void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFla
 }
 
 pcap_t *handle;
-void ctrl_c(int n){
+void ctrl_c(int n)
+{
     printf("\nCATCH PACKET END\n");
     pcap_close(handle);
     exit(0);
@@ -193,25 +194,25 @@ void printAscii(u_char *packet, int length){
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-  const struct sniff_ethernet *ethernet;
-  const struct sniff_ip *ip;
-  const struct sniff_tcp *tcp;
-  const struct sniff_udp *udp;
-  const struct sniff_arp *arp;
+  const struct ether_header *ethernet;
+  const struct ip *ip;
+  const struct tcphdr *tcp;
+  const struct udphdr *udp;
+  struct arp *arp;
   u_char* trame;
-  int size_ethernet = sizeof(struct sniff_ethernet);
+  int size_ethernet = sizeof(struct ether_header);
   int size_ip;
   int size_tcp;
   int size_trame;
   int *vFlag = (int *) args;
 
-  ethernet = (struct sniff_ethernet*)(packet);
-  ip = (struct sniff_ip*)(packet+size_ethernet);
+  ethernet = (struct ether_header*)(packet);
+  ip = (struct ip*)(packet+size_ethernet);
   size_ip=IP_HL(ip)*4;
-  tcp = (struct sniff_tcp*)(packet+size_ip+size_ethernet);
+  tcp = (struct tcphdr*)(packet+size_ip+size_ethernet);
   size_tcp=TH_OFF(tcp)*4;
-  udp = (struct sniff_udp*)(packet + sizeof(struct ether_header) + ip->ip_len*4);
-  arp = (struct sniff_arp*)(packet+14);
+  udp = (struct udphdr*)(packet + sizeof(struct ether_header) + ip->ip_len*4);
+  arp = (struct arp*)(packet+14);
 
   printf("Caught packet with length of [%d]\n", header->len);
   printArp(arp, *vFlag);
@@ -247,7 +248,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   return;
 }
 
-void printIP(const struct sniff_ip* ip, int verbosite)
+void printIP(const struct ip* ip, int verbosite)
 {
   char *aux = inet_ntoa(ip->ip_src);
   char *ab = strcpy(malloc(strlen(aux)+1), aux);
@@ -272,7 +273,7 @@ void printIP(const struct sniff_ip* ip, int verbosite)
   printf("\n");
 }
 
-void printEther(const struct sniff_ethernet* ethernet, int verbosite)
+void printEther(const struct ether_header* ethernet, int verbosite)
 {
   printf("**********ETHERNET**********\n");
   if(verbosite > 1)
@@ -300,7 +301,7 @@ void printEther(const struct sniff_ethernet* ethernet, int verbosite)
   }
   printf("\n");
 }
-void printTcp(const struct sniff_tcp* tcp, int verbosite)
+void printTcp(const struct tcphdr* tcp, int verbosite)
 {
   printf("***********TCP*********\n");
   printf("Source port: %u\n", ntohs(tcp->th_sport));
@@ -333,7 +334,7 @@ void printTcp(const struct sniff_tcp* tcp, int verbosite)
     }
     if(verbosite > 2)
     {
-      printf("Data Offset:%d\n", ntohs(tcp->th_offx2));
+      printf("Data Offset:%d\n", ntohs(tcp->th_off));
       printf("Window: %d\n", ntohs(tcp->th_win));
       printf("Checksum: %d\n",ntohs(tcp->th_sum));
       printf("Urgent Pointer: %d\n", ntohs(tcp->th_urp));
@@ -343,7 +344,7 @@ void printTcp(const struct sniff_tcp* tcp, int verbosite)
 
   printf("\n");
 }
-void printUdp(const struct sniff_udp* udp, int verbosite)
+void printUdp(const struct udphdr* udp, int verbosite)
 {
   printf("**********UDP**********\n");
   printf("Source port: %u\n",ntohs(udp->uh_sport));
@@ -361,13 +362,13 @@ void printUdp(const struct sniff_udp* udp, int verbosite)
   printf("\n");
 }
 
-void printArp(const struct sniff_arp* arp, int verbosite)
+void printArp(struct arphdr* arp, int verbosite)
 {
   printf("**********ARP**********\n");
   if(verbosite > 1)
   {
     printf("Hardware type : %u (%s) \n", ntohs(arp->htype),(ntohs(arp->htype) == 1) ? "Ethernet" : "Inconnu");
-    printf("Protocol : %u (%s) \n", arp->ptype,(ntohs(arp->ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
+    printf("Protocol : %u (%s) \n", arp->ar_op,(ntohs(arp->ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
     printf("Operation : %u (%s) \n", ntohs(arp->oper), (ntohs(arp->oper) == ARP_REQUEST)? "REQUEST" : "REPLY");
     if(verbosite > 2)
     {
