@@ -347,8 +347,8 @@ void printTcp(const struct tcphdr* tcp, int verbosite)
 void printUdp(const struct udphdr* udp, int verbosite)
 {
   printf("**********UDP**********\n");
-  printf("Source port: %u\n",ntohs(udp->uh_sport));
-  printf("Destination port: %u\n", ntohs(udp->uh_dport));
+  printf("Source port: %u\n",ntohs(udp->source));
+  printf("Destination port: %u\n", ntohs(udp->dest));
   if(verbosite > 1)
   {
     printf("Header size: %d\n", ntohs(udp->uh_ulen));
@@ -368,7 +368,7 @@ void printArp(struct arphdr* arp, int verbosite)
   if(verbosite > 1)
   {
     printf("Hardware type : %u (%s) \n", ntohs(arp->htype),(ntohs(arp->htype) == 1) ? "Ethernet" : "Inconnu");
-    printf("Protocol : %u (%s) \n", arp->ar_op,(ntohs(arp->ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
+    printf("Protocol : %u (%s) \n", arp->ar_pro,(ntohs(arp->ptype) == ETHERTYPE_IP) ? "IPv4" : "Inconnu");
     printf("Operation : %u (%s) \n", ntohs(arp->oper), (ntohs(arp->oper) == ARP_REQUEST)? "REQUEST" : "REPLY");
     if(verbosite > 2)
     {
