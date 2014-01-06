@@ -371,8 +371,8 @@ void printArp(struct arphdr* arp, int verbosite)
     printf("Operation : %u (%s) \n", ntohs(arp->ar_op), (ntohs(arp->ar_op) == ARP_REQUEST)? "REQUEST" : "REPLY");
     if(verbosite > 2)
     {
-        u_char * data = (u_char *) arp + sizeof(struct arphdr);
-        printf("Source Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",(arp->data[0]),(arp->data[1]),(arp->data[2]),(arp->data[3]),(arp->data[4]),(arp->data[5]));
+        u_char * content = (u_char *) arp + sizeof(struct arphdr);
+        printf("Source Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",(arp->content[0]),(arp->content[1]),(arp->content[2]),(arp->content[3]),(arp->content[4]),(arp->content[5]));
         printf("Destination Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", (arp->data[0]),(arp->data[1]),(arp->data[2]),(arp->data[3]),(arp->data[4]),(arp->data[5]));
 
         printf("Source IP address: %d.%d.%d.%d\n",(arp->data[0]),(arp->data[1]),(arp->data[2]),(arp->data[3]));
