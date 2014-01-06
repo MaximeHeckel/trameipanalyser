@@ -9,6 +9,8 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <arpa/telnet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <pcap.h>
