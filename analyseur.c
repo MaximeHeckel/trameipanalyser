@@ -230,6 +230,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       }
       else if(ntohs(udp->source)== 53 || ntohs(udp->dest)==53){
                  printDns((u_char *)packet + sizeof(struct ether_header) + size_ip+8,*vFlag,1);
+                }
       break;
     default:
       printf("Unknown Protocol\n");
