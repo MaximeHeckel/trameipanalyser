@@ -640,6 +640,7 @@ void printDns(u_char *data, int verbosite, int type)
         i+=5;
         nqd--;       
     }
+}
 void openFile(char * name, FILE ** file)
 {
     *file = fopen(name, "r");
