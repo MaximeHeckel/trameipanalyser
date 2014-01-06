@@ -354,7 +354,7 @@ void printUdp(const struct udphdr* udp, int verbosite)
     printf("Checksum: %d\n", ntohs(udp->check));
     if(verbosite > 2)
     {
-      printPacket((const u_char*) udp, ntohs(udp->uh_ulen));
+      printPacket((const u_char*) udp, ntohs(udp->len));
       printf("\n");
     }
   }
