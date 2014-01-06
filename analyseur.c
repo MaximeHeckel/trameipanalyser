@@ -225,8 +225,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       break;
     case IPPROTO_UDP:
       printUdp(udp, *vFlag);
-      if((ntohs(udp->uh_sport)==IPPORT_BOOTPS && ntohs(udp->uh_dport)==IPPORT_BOOTPC) ||
-                (ntohs(udp->uh_dport)==IPPORT_BOOTPS && ntohs(udp->uh_sport)==IPPORT_BOOTPC)){
+      if((ntohs(udp->source)==IPPORT_BOOTPS && ntohs(udp->dest)==IPPORT_BOOTPC) ||
+                (ntohs(udp->dest)==IPPORT_BOOTPS && ntohs(udp->source)==IPPORT_BOOTPC)){
                 printBootp((struct bootp*) (packet + sizeof(struct ether_header) + ip->ip_len*4+8),*vFlag);
       }
       break;
