@@ -23,7 +23,7 @@
 #include "bootp.h"
 
 /* Ethernet addresses are 6 bytes */
-#define ETHER_ADDR_LEN  6
+//#define ETHER_ADDR_LEN  6
 #define SIZE_UDP        8
 #define ARP_REQUEST 1   /* ARP Request             */
 #define ARP_REPLY 2     /* ARP Reply               */
