@@ -304,8 +304,8 @@ void printEther(const struct ether_header* ethernet, int verbosite)
 void printTcp(const struct tcphdr* tcp, int verbosite)
 {
   printf("***********TCP*********\n");
-  printf("Source port: %u\n", ntohs(tcp->th_sport));
-  printf("Destination port: %u\n", ntohs(tcp->th_dport));
+  printf("Source port: %u\n", ntohs(tcp->source));
+  printf("Destination port: %u\n", ntohs(tcp->dest));
   if(verbosite ==1)
   {
     printf("Flag:");
