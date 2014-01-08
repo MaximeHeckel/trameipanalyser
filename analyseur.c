@@ -166,7 +166,7 @@ void openDevice(u_char *args, char ** device, pcap_t ** handle, char ** errbuf)
  }
   printf("Device %s opened succesfully\n", *device);
   if (pcap_compile(*handle, &fp, fFlag, 0, net) == -1) {
-    fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(*handle));
+    fprintf(stderr, "Couldn't parse filter %s: %s\n", fFlag, pcap_geterr(*handle));
     exit(EXIT_FAILURE);
    }
 }
