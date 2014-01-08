@@ -7,7 +7,7 @@ int main(int argc, char ** argv)
   char *iFlag = NULL;
   char *oFlag = NULL;
   char *fFlag = NULL;
-  char * errbuf = malloc(PCAP_ERRBUF_SIZE);
+  char *errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
 
   struct bpf_program fp;
@@ -17,10 +17,16 @@ int main(int argc, char ** argv)
 
   if(iFlag != NULL)
   {
+    printf("****LIVEMODE****");
     openDevice(&iFlag, &handle, &errbuf);
     if( fFlag != NULL)
     {
-      applyFilter(&handle, fFlag, &fp, &net);
+      printf("coucou");
+      //applyFilter(&handle, fFlag, &fp, &net);
+    }
+    else
+    {
+      printf("Flag is null");
     }
     pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
   }
@@ -140,8 +146,10 @@ void checkIfSudo()
 
 void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
 {
-  //bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
-  //bpf_u_int32 net = 0;  /* The IP of our sniffing device */
+  struct bpf_program fp;
+  char* filter_exp="port 80";
+  bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
+  bpf_u_int32 net = 0;  /* The IP of our sniffing device */
   printf("Opening device %s...\n", *device);
 
   *handle = pcap_open_live(*device, BUFSIZ, 1, 1000, *errbuf); //Start sniffing
@@ -156,10 +164,10 @@ void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
     exit(EXIT_FAILURE);
  }
   printf("Device %s opened succesfully\n", *device);
-  /*if (pcap_compile(*handle, &fp, filter_exp, 0, net) == -1) {
+  if (pcap_compile(*handle, &fp, filter_exp, 0, net) == -1) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(*handle));
     exit(EXIT_FAILURE);
-   }*/
+   }
 }
 
 void openOfflineDevice(char * name, pcap_t ** handle, char ** errbuf)
@@ -176,10 +184,11 @@ void openOfflineDevice(char * name, pcap_t ** handle, char ** errbuf)
 
 void applyFilter(pcap_t ** handle,char * filter, struct bpf_program * fp, bpf_u_int32 * net)
 {
-  if (pcap_compile(*handle, fp, filter, 0, *net) == -1) {
+  if (pcap_compile(*handle, fp, filter, 0, *net) == -1)
+  {
     fprintf(stderr, "Couldn't parse filter '%s': %s\n", filter, pcap_geterr(*handle));
     exit(EXIT_FAILURE);
-   }
+  }
   printf("Openning filter %s", filter);
   if(pcap_setfilter(*handle,fp) == -1)
   {
