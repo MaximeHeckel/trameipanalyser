@@ -270,7 +270,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       printf("ICMP");
       break;
     case IPPROTO_SCTP:
-      print("SCTP");
+      printf("SCTP");
       break;
     default:
       printf("Unknown Protocol\n");
@@ -634,8 +634,6 @@ void printDns(u_char *data, int verbosite, int type)
     u_char *dns_data = data + sizeof(struct dns_header);
     char buffer[256];
     bzero(buffer,256);
-    int next_data = 0;
-    int offset = 0;
     int i=0;
     int j=0;
     int nqd = htons(dns->qd);
