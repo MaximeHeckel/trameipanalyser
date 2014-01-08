@@ -266,6 +266,12 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
                  printDns((u_char *)packet + sizeof(struct ether_header) + size_ip+8,*vFlag,1);
                 }
       break;
+    case IPPROTO_ICMP:
+      printf("ICMP");
+      break;
+    case IPPROTO_SCTP:
+      print("SCTP");
+      break;
     default:
       printf("Unknown Protocol\n");
       break;
