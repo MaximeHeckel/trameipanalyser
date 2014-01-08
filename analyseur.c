@@ -19,15 +19,15 @@ int main(int argc, char ** argv)
   {
     printf("****LIVEMODE****");
     openDevice((u_char*) &fFlag ,&iFlag, &handle, &errbuf);
-    if( fFlag != NULL)
+    /*if( fFlag:!= NULL)
     {
       printf("coucou");
-      //applyFilter(&handle, fFlag, &fp, &net);
+      applyFilter(&handle, fFlag, &fp, &net);
     }
     else
     {
       printf("Flag is null");
-    }
+    }*/
     pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
   }
   else
