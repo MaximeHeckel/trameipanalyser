@@ -64,7 +64,7 @@ struct dns_answer{
 void getOptions(int argc, char ** argv, int * vFlag, char ** iFlag, char ** oFlag, char ** fFlag);
 void checkIfSudo();
 void ctrl_c(int n);
-void openDevice(char ** device,pcap_t ** handle, char ** errbuf);
+void openDevice(u_char *args, char ** device,pcap_t ** handle, char ** errbuf);
 void printHelp(char ** argv);
 void printPacket(const u_char * packet, int length);
 void print_payload(const u_char *trame, int len);
