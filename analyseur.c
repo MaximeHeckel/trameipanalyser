@@ -36,10 +36,10 @@ int main(int argc, char ** argv)
     printf("*****OFFLINE MODE*****\n");
     printf("\n");
     openOfflineDevice(oFlag, &handle, &errbuf);
-    /*if( fFlag != NULL)
+    if( fFlag != NULL)
     {
       applyFilter(&handle, fFlag, &fp, &net);
-    }*/
+    }
     pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
   }
   signal(SIGINT,ctrl_c);
