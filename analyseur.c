@@ -147,7 +147,8 @@ void checkIfSudo()
 void openDevice(u_char *args, char ** device, pcap_t ** handle, char ** errbuf)
 {
   struct bpf_program fp;
-  char *fFlag = (char*) args;
+  char **fFlag = (char**) args;
+
   char* filter_exp="port 80";
   bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
   bpf_u_int32 net = 0;  /* The IP of our sniffing device */
@@ -165,8 +166,8 @@ void openDevice(u_char *args, char ** device, pcap_t ** handle, char ** errbuf)
     exit(EXIT_FAILURE);
  }
   printf("Device %s opened succesfully\n", *device);
-  if (pcap_compile(*handle, &fp, fFlag, 0, net) == -1) {
-    fprintf(stderr, "Couldn't parse filter %s: %s\n", fFlag, pcap_geterr(*handle));
+  if (pcap_compile(*handle, &fp, *fFlag, 0, net) == -1) {
+    fprintf(stderr, "Couldn't parse filter %s: %s\n", *fFlag, pcap_geterr(*handle));
     exit(EXIT_FAILURE);
    }
 }
