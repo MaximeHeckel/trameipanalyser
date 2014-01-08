@@ -77,3 +77,5 @@ void printUdp(const struct udphdr* udp, int verbosite);
 void printArp(struct arphdr* arp, int verbosite);
 void printBootp(const struct bootp* bp, int verbosite);
 void printDns(u_char *data, int verbosite, int type);
+void openOfflineDevice(char * name, pcap_t ** handle, char ** errbuf);
+void applyFilter(pcap_t ** handle,char * filter, struct bpf_program * fp, bpf_u_int32 * net);

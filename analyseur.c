@@ -6,23 +6,34 @@ int main(int argc, char ** argv)
   int vFlag = 0;
   char *iFlag = NULL;
   char *oFlag = NULL;
-  char *fFlag = "port 80";
-
-  getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
+  char *fFlag = NULL;
   char * errbuf = malloc(PCAP_ERRBUF_SIZE);
   pcap_t *handle = NULL;
-  openDevice(&iFlag, &handle, &errbuf);
 
-  signal(SIGINT,ctrl_c);
-  pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
+  struct bpf_program fp;
+  bpf_u_int32 net = 0;  /* The IP of our sniffing device */
 
-  /*else
+  getOptions(argc, argv, &vFlag, &iFlag, &oFlag, &fFlag);
+
+  if(iFlag != NULL)
   {
-    FILE * file = NULL;
-    openFile(oFlag, &file);
-  }*/
-
-  /* And close the session */
+    openDevice(&iFlag, &handle, &errbuf);
+    if( fFlag != NULL)
+    {
+      applyFilter(&handle, fFlag, &fp, &net);
+    }
+    pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
+  }
+  else
+  {
+    openOfflineDevice(oFlag, &handle, &errbuf);
+    if( fFlag != NULL)
+    {
+      applyFilter(&handle, fFlag, &fp, &net);
+    }
+    pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
+  }
+  signal(SIGINT,ctrl_c);
   pcap_close(handle);
   return 0;
 }
@@ -129,10 +140,8 @@ void checkIfSudo()
 
 void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
 {
-  struct bpf_program fp;
-  char filter_exp[] = "port 80";
   //bpf_u_int32 mask = 0;  /* The netmask of our sniffing device */
-  bpf_u_int32 net = 0;  /* The IP of our sniffing device */
+  //bpf_u_int32 net = 0;  /* The IP of our sniffing device */
   printf("Opening device %s...\n", *device);
 
   *handle = pcap_open_live(*device, BUFSIZ, 1, 1000, *errbuf); //Start sniffing
@@ -147,12 +156,37 @@ void openDevice(char ** device, pcap_t ** handle, char ** errbuf)
     exit(EXIT_FAILURE);
  }
   printf("Device %s opened succesfully\n", *device);
-  if (pcap_compile(*handle, &fp, filter_exp, 0, net) == -1) {
+  /*if (pcap_compile(*handle, &fp, filter_exp, 0, net) == -1) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(*handle));
     exit(EXIT_FAILURE);
-   }
+   }*/
 }
 
+void openOfflineDevice(char * name, pcap_t ** handle, char ** errbuf)
+{
+    *handle = pcap_open_offline(name,*errbuf);
+    if (*handle == NULL)
+    {
+      fprintf(stderr, "Couldn't open file %s: %s\n", name, *errbuf);
+      exit(EXIT_FAILURE);
+    }
+    printf("File '%s' opened succesfully.\n", name);
+
+}
+
+void applyFilter(pcap_t ** handle,char * filter, struct bpf_program * fp, bpf_u_int32 * net)
+{
+  if (pcap_compile(*handle, fp, filter, 0, *net) == -1) {
+    fprintf(stderr, "Couldn't parse filter '%s': %s\n", filter, pcap_geterr(*handle));
+    exit(EXIT_FAILURE);
+   }
+  printf("Openning filter %s", filter);
+  if(pcap_setfilter(*handle,fp) == -1)
+  {
+    fprintf(stderr, "Couldn't apply the filter %s: %s", filter, pcap_geterr(*handle));
+    exit(EXIT_FAILURE);
+  }
+}
 
 void printPacket(const u_char * packet, int length)
 {
@@ -639,9 +673,9 @@ void printDns(u_char *data, int verbosite, int type)
             printf(" %02x ",dns_data[i+2]);
             break;
         }
-        printf("\n"); 
+        printf("\n");
         i+=5;
-        nqd--;       
+        nqd--;
     }
 }
 void openFile(char * name, FILE ** file)
