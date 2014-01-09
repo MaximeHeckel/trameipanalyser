@@ -677,7 +677,7 @@ void printDns(u_char *data, int verbosite, int type)
     }
 }
 
-void printTelnet()
+//void printTelnet()
 void openFile(char * name, FILE ** file)
 {
     *file = fopen(name, "r");
