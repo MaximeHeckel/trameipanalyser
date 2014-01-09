@@ -20,15 +20,6 @@ int main(int argc, char ** argv)
     printf("****LIVEMODE****\n");
     printf("\n");
     openDevice((u_char*) &fFlag ,&iFlag, &handle, &errbuf);
-    /*if( fFlag:!= NULL)
-    {
-      printf("coucou");
-      applyFilter(&handle, fFlag, &fp, &net);
-    }
-    else
-    {
-      printf("Flag is null");
-    }*/
     pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
   }
   else
@@ -36,10 +27,6 @@ int main(int argc, char ** argv)
     printf("*****OFFLINE MODE*****\n");
     printf("\n");
     openOfflineDevice(oFlag, &handle, &errbuf);
-    /*if( fFlag != NULL)
-    {
-      applyFilter(&handle, fFlag, &fp, &net);
-    }*/
     pcap_loop(handle, -1 , got_packet, (u_char*) &vFlag);
   }
   signal(SIGINT,ctrl_c);
@@ -163,9 +150,8 @@ void openDevice(u_char *args, char ** device, pcap_t ** handle, char ** errbuf)
     fprintf(stderr, "Couldn't open device %s: %s\n", *device, *errbuf);
     exit(EXIT_FAILURE);
  }
-  if (pcap_datalink(*handle) != DLT_EN10MB) { //Indicates the type of link layer headers
+  if (pcap_datalink(*handle) != DLT_EN10MB) {
   fprintf(stderr, "Device %s doesn't provide Ethernet headers - not supported\n", *device);
-    //fails if the device doesn't supply Ethernet headers
     exit(EXIT_FAILURE);
  }
   printf("Device %s opened succesfully\n", *device);
@@ -185,21 +171,6 @@ void openOfflineDevice(char * name, pcap_t ** handle, char ** errbuf)
     }
     printf("File '%s' opened succesfully.\n", name);
 
-}
-
-void applyFilter(pcap_t ** handle,char * filter, struct bpf_program * fp, bpf_u_int32 * net)
-{
-  if (pcap_compile(*handle, fp, filter, 0, *net) == -1)
-  {
-    fprintf(stderr, "Couldn't parse filter '%s': %s\n", filter, pcap_geterr(*handle));
-    exit(EXIT_FAILURE);
-  }
-  printf("Openning filter %s", filter);
-  if(pcap_setfilter(*handle,fp) == -1)
-  {
-    fprintf(stderr, "Couldn't apply the filter %s: %s", filter, pcap_geterr(*handle));
-    exit(EXIT_FAILURE);
-  }
 }
 
 void printPacket(const u_char * packet, int length)
@@ -262,33 +233,42 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   arp = (struct arphdr*)(packet+14);
 
   printf("Caught packet with length of [%d]\n", header->len);
-  printArp(arp, *vFlag);
   printEther(ethernet,*vFlag);
-  printIP(ip, *vFlag);
-  switch(ip->ip_p)
-  {
-    case IPPROTO_TCP:
-      printTcp(tcp, *vFlag);
-      break;
-    case IPPROTO_UDP:
-      printUdp(udp, *vFlag);
-      if((ntohs(udp->source)==IPPORT_BOOTPS && ntohs(udp->dest)==IPPORT_BOOTPC) ||
+    switch(ntohs(ethernet->ether_type)){
+    case ETHERTYPE_IP:
+    case ETHERTYPE_IPV6:
+      printIP(ip, *vFlag);
+      switch(ip->ip_p)
+      {
+        case IPPROTO_TCP:
+          printTcp(tcp, *vFlag);
+          break;
+        case IPPROTO_UDP:
+          printUdp(udp, *vFlag);
+          if((ntohs(udp->source)==IPPORT_BOOTPS && ntohs(udp->dest)==IPPORT_BOOTPC) ||
                 (ntohs(udp->dest)==IPPORT_BOOTPS && ntohs(udp->source)==IPPORT_BOOTPC)){
                 printBootp((struct bootp*) (packet + sizeof(struct ether_header) + ip->ip_len*4+8),*vFlag);
-      }
-      else if(ntohs(udp->source)== 53 || ntohs(udp->dest)==53){
+          }
+          else if(ntohs(udp->source)== 53 || ntohs(udp->dest)==53){
                  printDns((u_char *)packet + sizeof(struct ether_header) + size_ip+8,*vFlag,1);
                 }
+          break;
+        case IPPROTO_ICMP:
+          printf("ICMP");
+          break;
+        case IPPROTO_SCTP:
+          printf("SCTP");
+          break;
+        default:
+          printf("Unknown Protocol\n");
+        break;
+      }
       break;
-    case IPPROTO_ICMP:
-      printf("ICMP");
-      break;
-    case IPPROTO_SCTP:
-      printf("SCTP");
-      break;
-    default:
-      printf("Unknown Protocol\n");
-      break;
+      case ETHERTYPE_ARP:
+        printArp(arp, *vFlag);
+        break;
+      default:
+        printf("EtherType not handled\n");
   }
 
   trame = (u_char *)(packet + size_ethernet + size_ip + size_tcp);
@@ -696,6 +676,8 @@ void printDns(u_char *data, int verbosite, int type)
         nqd--;
     }
 }
+
+void printTelnet()
 void openFile(char * name, FILE ** file)
 {
     *file = fopen(name, "r");
